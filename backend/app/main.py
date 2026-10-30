@@ -12,14 +12,21 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Strict CORS
+# Flexible CORS for local dev and cloud deployments (Vercel, Render)
+raw_origins = [
+    settings.FRONTEND_ORIGIN,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+if "," in settings.FRONTEND_ORIGIN:
+    raw_origins.extend([o.strip() for o in settings.FRONTEND_ORIGIN.split(",") if o.strip()])
+
+cors_origins = list(set([o for o in raw_origins if o and o != "*"]))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        settings.FRONTEND_ORIGIN,
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=cors_origins if cors_origins else ["*"],
+    allow_origin_regex=r"https://.*(\.vercel\.app|\.onrender\.com|\.pages\.dev)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
