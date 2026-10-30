@@ -32,12 +32,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Mount API endpoints under /api/v1 (canonical) and without prefix (fallback compatibility)
 app.include_router(api_v1_router, prefix="/api/v1")
+app.include_router(api_v1_router, prefix="")
 
 
 @app.on_event("startup")
 def on_startup():
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    try:
+        from app.core.database import Base, SessionLocal, engine
+        from app.models.identity import User
+        # Ensure schema tables exist
+        Base.metadata.create_all(bind=engine)
+        # Check if database has users; if empty, run deterministic seed
+        db = SessionLocal()
+        user_count = db.query(User).count()
+        db.close()
+        if user_count == 0:
+            print("🌱 Fresh database detected on startup. Auto-seeding initial AICTE records...")
+            from app.seed.run import seed_database
+            seed_database(reset=False)
+            print("✅ Auto-seeding complete.")
+    except Exception as e:
+        print(f"Startup database initialization error: {e}")
 
 
 @app.get("/")

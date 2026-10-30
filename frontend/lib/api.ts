@@ -1,4 +1,14 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+function getBaseUrl(): string {
+  let url = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1").trim();
+  url = url.replace(/\/+$/, "");
+  if (!url.endsWith("/api/v1")) {
+    if (url.endsWith("/api")) url = `${url}/v1`;
+    else url = `${url}/api/v1`;
+  }
+  return url;
+}
+
+const API_BASE_URL = getBaseUrl();
 
 class ApiClient {
   private token: string | null = null;
@@ -29,7 +39,29 @@ class ApiClient {
       ...(options.headers as Record<string, string> || {}),
     };
 
-    const token = this.getToken();
+    let token = this.getToken();
+
+    // Transparent demo fallback: auto-provision demo token so tables are never empty for first-time visitors
+    const isPublicEndpoint = endpoint.includes("/auth/") || endpoint.includes("/health");
+    if (!token && !isPublicEndpoint && typeof window !== "undefined") {
+      try {
+        const demoRes = await fetch(`${API_BASE_URL}/auth/demo-login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: "REGIONAL_OFFICER" }),
+        });
+        if (demoRes.ok) {
+          const authData = await demoRes.json();
+          if (authData.access_token) {
+            this.setToken(authData.access_token);
+            token = authData.access_token;
+          }
+        }
+      } catch {
+        // Fallback silently if offline
+      }
+    }
+
     if (token && !headers["Authorization"]) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -38,7 +70,8 @@ class ApiClient {
       headers["Content-Type"] = "application/json";
     }
 
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    const res = await fetch(`${API_BASE_URL}${cleanEndpoint}`, {
       ...options,
       headers,
     });
