@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { useAppStore, ROLE_PRESETS } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { EvidenceMatrixTable } from "@/components/EvidenceMatrixTable";
 import { ReScrutinyPanel } from "@/components/ReScrutinyPanel";
 import { TraceabilityGraph } from "@/components/TraceabilityGraph";
@@ -19,11 +19,16 @@ import {
   Compass,
   Layers,
   Sparkles,
+  Lock,
+  Scale,
+  Calendar,
+  Building2,
+  Cpu,
 } from "lucide-react";
 
 export default function DemoPage() {
-  const { setCurrentRole, openWhyModal } = useAppStore();
-  const [activeStep, setActiveStep] = useState(1);
+  const { openWhyModal } = useAppStore();
+  const [activeStage, setActiveStage] = useState(1);
   const [appData, setAppData] = useState<any>(null);
   const [matrix, setMatrix] = useState<any[]>([]);
   const [deficiencies, setDeficiencies] = useState<any[]>([]);
@@ -36,17 +41,32 @@ export default function DemoPage() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [resetting, setResetting] = useState(false);
+  const [schedulingEvc, setSchedulingEvc] = useState(false);
 
-  // Load Meridian Application & Seeded State
+  // Load Meridian Application State
   const loadDemoData = async () => {
     setLoading(true);
     try {
-      const apps = await api.getApplications({ search: "APP-2024-MIT-001" });
-      if (apps.length > 0) {
-        const fullApp = await api.getApplication(apps[0].id);
+      if (!api.getToken()) {
+        try {
+          const authRes = await api.demoLogin("REGIONAL_OFFICER");
+          api.setToken(authRes.access_token);
+        } catch {
+          // Continue with standard request
+        }
+      }
+
+      let apps = await api.getApplications({ search: "APP-2024-MIT-001" }).catch(() => []);
+      if (!apps || apps.length === 0) {
+        apps = await api.getApplications().catch(() => []);
+      }
+
+      const targetAppSummary = apps.find((a: any) => a.application_number === "APP-2024-MIT-001") || (apps.length > 0 ? apps[0] : null);
+
+      if (targetAppSummary) {
+        const fullApp = await api.getApplication(targetAppSummary.id);
         setAppData(fullApp);
 
-        // Fetch sub-entities in parallel
         const [mat, defs, chk, dls, pred, amds, logs] = await Promise.all([
           api.getEvidenceMatrix(fullApp.id).catch(() => []),
           api.getDeficiencies(fullApp.id).catch(() => []),
@@ -77,662 +97,415 @@ export default function DemoPage() {
     }
   };
 
+
   useEffect(() => {
     loadDemoData();
   }, []);
 
   const handleReset = async () => {
-    if (!confirm("Reset demo to baseline initial state?")) return;
+    if (!confirm("Reset demo environment to baseline initial state?")) return;
     setResetting(true);
     try {
       await api.resetDemo();
       await loadDemoData();
-      setActiveStep(1);
+      setActiveStage(1);
     } catch (err: any) {
-      alert("Failed to reset: " + err.message);
+      alert("Failed to reset demo: " + err.message);
     } finally {
       setResetting(false);
     }
   };
 
-  const steps = [
-    { number: 1, title: "1. Submission & Table 2.3 Route" },
-    { number: 2, title: "2. Evidence Matrix & OCR" },
-    { number: 3, title: "3. Officer Scrutiny & Deficiency" },
-    { number: 4, title: "4. Institution Resubmission" },
-    { number: 5, title: "5. Targeted Re-Scrutiny (1.8g)" },
-    { number: 6, title: "6. EVC Scheduling (OR-Tools)" },
-    { number: 7, title: "7. Predictive Intelligence & Deadlines" },
-    { number: 8, title: "8. Regulatory Change Impact & Approval Gate" },
-    { number: 9, title: "9. SHA-256 Audit Trail" },
+  const handleRunEvcSchedule = async () => {
+    if (!appData) return;
+    setSchedulingEvc(true);
+    try {
+      const res = await api.scheduleEvc(appData.id, "2026-11-20", 3);
+      setEvcSchedule(res);
+      await loadDemoData();
+    } catch (err: any) {
+      alert("EVC schedule failed: " + err.message);
+    } finally {
+      setSchedulingEvc(false);
+    }
+  };
+
+  const handleApproveAction = async (itemId: string, status: string) => {
+    try {
+      await api.approveImpactItem(itemId, status, `Authorized administrative determination: ${status}`);
+      if (amendment) {
+        const rep = await api.getImpactReport(amendment.id);
+        setImpactReport(rep);
+      }
+    } catch (err: any) {
+      alert("Approval action failed: " + err.message);
+    }
+  };
+
+  const stages = [
+    { number: 1, title: "Stage 1: Application Submission & Table 2.3 Route" },
+    { number: 2, title: "Stage 2: Document Verification & Scrutiny" },
+    { number: 3, title: "Stage 3: Deficiency Response & Targeted Re-Scrutiny (1.8g)" },
+    { number: 4, title: "Stage 4: Decision, EVC Scheduling & Regulatory Impact" },
   ];
 
-  if (loading) {
+  if (loading || !appData) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-3">
-          <div className="h-8 w-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs font-mono text-slate-500">Loading Meridian Institute Scenario...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[500px] text-xs font-bold text-slate-500 gap-3">
+        <div className="h-7 w-7 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <span>Loading Meridian Institute Signature Demonstration Case...</span>
       </div>
     );
   }
 
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* Demo Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 max-w-7xl mx-auto font-sans">
+      {/* Permanent Notice */}
+      <div className="bg-amber-600 text-white text-xs font-semibold py-1.5 px-4 rounded-lg flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-2">
+          <AlertTriangle size={15} className="shrink-0" />
+          <span>DEMO ENVIRONMENT — Synthetic data. No live AICTE databases or APIs are connected.</span>
+        </div>
+        <button
+          onClick={handleReset}
+          disabled={resetting}
+          className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-2.5 py-1 rounded text-[11px] font-bold transition"
+        >
+          <RotateCcw size={12} />
+          <span>{resetting ? "Resetting..." : "Reset Scenario"}</span>
+        </button>
+      </div>
+
+      {/* Case Header */}
+      <div className="bg-[#0a192f] text-white p-6 rounded-xl border border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-900">
-              SIGNATURE DEMONSTRATION
-            </span>
-            <span className="text-xs text-slate-500">Meridian Institute of Technology</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-blue-300 mb-1">
+            <span>Fictional Signature Scenario</span>
+            <span>•</span>
+            <span className="font-mono text-amber-400">Meridian Institute of Technology</span>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mt-1">End-to-End AICTE Approval Journey</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Step-by-step interactive walkthrough connecting regulatory requirements, evidence OCR, deficiency lineage, and amendment propagation.
+          <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">
+            Complete End-to-End Regulatory Journey
+          </h1>
+          <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+            Follows Meridian Institute of Technology (Pune, Western Region, AICTE ID: 1-1094827101) from new programme intake through PyMuPDF document extraction, deficiency identification, locked Clause 1.8(g) re-scrutiny, EVC allocation, and corrigendum change-impact evaluation.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleReset}
-            disabled={resetting}
-            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition flex items-center gap-1.5"
-          >
-            <RotateCcw size={14} className={resetting ? "animate-spin" : ""} />
-            {resetting ? "Resetting..." : "Reset Demo Scenario"}
-          </button>
+        <div className="text-right shrink-0">
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Target File</span>
+          <span className="font-mono font-bold text-base text-blue-300">{appData?.application_number}</span>
+          <span className="text-[10px] text-slate-400 block font-mono">Stage: {appData?.current_stage}</span>
         </div>
       </div>
 
-      {/* Step Indicator Tabs */}
-      <div className="bg-white border border-slate-200 rounded-xl p-2 shadow-sm flex items-center gap-1 overflow-x-auto text-xs">
-        {steps.map((s) => (
-          <button
-            key={s.number}
-            onClick={() => setActiveStep(s.number)}
-            className={`px-3 py-2 rounded-lg font-bold whitespace-nowrap transition flex items-center gap-1.5 ${
-              activeStep === s.number
-                ? "bg-slate-900 text-white shadow-sm"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <span>{s.title}</span>
-          </button>
-        ))}
+      {/* 4-Stage Stepper Ribbon */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+        {stages.map((st) => {
+          const isActive = activeStage === st.number;
+          const isDone = activeStage > st.number;
+          return (
+            <button
+              key={st.number}
+              type="button"
+              onClick={() => setActiveStage(st.number)}
+              className={`p-3 rounded-lg border text-left transition flex items-center justify-between ${
+                isActive
+                  ? "bg-[#0a192f] text-white border-blue-600 shadow"
+                  : isDone
+                  ? "bg-emerald-50/70 border-emerald-300 text-emerald-950 hover:bg-emerald-100/60"
+                  : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              <div>
+                <span className={`text-[10px] font-bold block ${isActive ? "text-blue-300" : isDone ? "text-emerald-700" : "text-slate-400"}`}>
+                  {isDone ? "Completed" : isActive ? "Active Stage" : "Upcoming"}
+                </span>
+                <span className="text-xs font-bold line-clamp-1">{st.title}</span>
+              </div>
+              {isDone ? (
+                <CheckCircle size={16} className="text-emerald-600 shrink-0 ml-2" />
+              ) : (
+                <span className={`text-xs font-mono font-black shrink-0 ml-2 ${isActive ? "text-amber-400" : "text-slate-400"}`}>
+                  0{st.number}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Step 1: Submission & Configured Route */}
-      {activeStep === 1 && appData && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
-          <div className="border-b pb-4">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Step 1 of 9</span>
-            <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-              Institution Submits Application: Configured Route & Table 2.3 Pathway
-            </h3>
-            <p className="text-xs text-slate-600 mt-1">
-              Meridian Institute has applied for Starting a new Programme/Level (B.Tech in Artificial Intelligence & Data Science).
-              Under AICTE Table 2.3, this application requires full Scrutiny, physical EVC visit, and Executive Committee approval.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div className="p-4 bg-slate-50 rounded-xl border space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400">Application Number</span>
-              <div className="font-mono font-bold text-slate-900 text-sm">{appData.application_number}</div>
-              <div className="text-slate-500">{appData.institution_name}</div>
+      {/* STAGE 1: Intake & Table 2.3 Route */}
+      {activeStage === 1 && (
+        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-5 text-xs">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div>
+              <span className="text-[10px] font-bold uppercase text-blue-700">Stage 1 of 4</span>
+              <h2 className="text-base font-bold text-slate-900">Application Intake & Configured Route (Table 2.3)</h2>
+              <p className="text-xs text-slate-500">
+                Meridian Institute submits application for <em>Starting a new Programme/Level</em> in Artificial Intelligence & Data Science.
+              </p>
             </div>
-
-            <div className="p-4 bg-slate-50 rounded-xl border space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400">Application Category</span>
-              <div className="font-bold text-slate-900">{appData.application_type}</div>
-              <span className="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-mono rounded font-semibold">
-                Table 2.3 Standard Route
-              </span>
-            </div>
-
-            <div className="p-4 bg-slate-50 rounded-xl border space-y-1">
-              <span className="text-[10px] uppercase font-bold text-slate-400">Current Stage</span>
-              <div className="font-bold text-blue-900 text-sm">{appData.current_stage}</div>
-              <span className="text-slate-500">Assigned Officer: Western Regional Director</span>
-            </div>
-          </div>
-
-          {/* Configured Route Flowchart */}
-          <div className="p-4 bg-slate-900 text-white rounded-xl space-y-3">
-            <span className="text-xs font-mono font-semibold text-blue-300 uppercase tracking-wider block">
-              Configured Route Sequence (Non-Universal Pipeline)
+            <span className="text-xs font-mono font-bold bg-blue-100 text-blue-900 px-2.5 py-1 rounded">
+              Route: SCRUTINY + EVC
             </span>
-            <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
-              <span className="bg-slate-800 px-3 py-1.5 rounded border border-slate-700 text-slate-300">1. SUBMISSION</span>
-              <ArrowRight size={14} className="text-slate-500" />
-              <span className="bg-blue-600 px-3 py-1.5 rounded font-bold text-white shadow">2. SCRUTINY (Clause 1.8)</span>
-              <ArrowRight size={14} className="text-slate-500" />
-              <span className="bg-slate-800 px-3 py-1.5 rounded border border-slate-700 text-slate-300">3. RE-SCRUTINY (Clause 1.8g)</span>
-              <ArrowRight size={14} className="text-slate-500" />
-              <span className="bg-slate-800 px-3 py-1.5 rounded border border-slate-700 text-slate-300">4. EVC VISIT (Clause 1.9)</span>
-              <ArrowRight size={14} className="text-slate-500" />
-              <span className="bg-slate-800 px-3 py-1.5 rounded border border-slate-700 text-slate-300">5. EC APPROVAL (Clause 1.10)</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+              <span className="font-bold text-slate-900 text-xs block">Institution Profile & Authority</span>
+              <div className="space-y-1 text-slate-700">
+                <div><strong>Institution:</strong> Meridian Institute of Technology</div>
+                <div><strong>AICTE Permanent ID:</strong> 1-1094827101</div>
+                <div><strong>Region & State:</strong> Western Region • Maharashtra (Pune)</div>
+                <div><strong>Category:</strong> Private-Self Financed Engineering College</div>
+                <div><strong>Authorised User:</strong> Prof. Anand G. Joshi (Director)</div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+              <span className="font-bold text-slate-900 text-xs block">Table 2.3 Statutory Processing Route</span>
+              <p className="text-slate-600 text-[11px] leading-relaxed">
+                Under APH Table 2.3, <strong>Starting a new Programme/Level</strong> mandates two independent procedural steps:
+              </p>
+              <div className="grid grid-cols-2 gap-2 text-center text-[11px] font-bold mt-2">
+                <div className="p-2 bg-blue-100 text-blue-900 rounded border border-blue-200">
+                  Step 1: Clause 1.8 Scrutiny Committee
+                </div>
+                <div className="p-2 bg-amber-100 text-amber-900 rounded border border-amber-200">
+                  Step 2: Clause 1.9 EVC Physical/Online Visit
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end pt-3 border-t border-slate-100">
             <button
-              onClick={() => setActiveStep(2)}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition"
+              onClick={() => setActiveStage(2)}
+              className="flex items-center gap-1.5 bg-[#0a192f] hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition"
             >
-              <span>Next: View Extracted Evidence Matrix</span>
+              <span>Proceed to Stage 2: Document Verification</span>
               <ArrowRight size={14} />
             </button>
           </div>
         </div>
       )}
 
-      {/* Step 2: Evidence Matrix & OCR */}
-      {activeStep === 2 && appData && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
-          <div className="border-b pb-4 flex items-start justify-between">
-            <div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Step 2 of 9</span>
-              <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-                Requirement-to-Evidence Matrix & PyMuPDF Extractions
-              </h3>
-              <p className="text-xs text-slate-600 mt-1">
-                PyMuPDF extracted structured fields from uploaded institutional PDFs.
-                Notice that the Fire Safety NOC is flagged as <strong>DEFICIENT</strong> because its validity date (15-11-2023) expired.
-              </p>
+      {/* STAGE 2: Document Verification & Evidence Matrix */}
+      {activeStage === 2 && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm text-xs space-y-2">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase text-blue-700">Stage 2 of 4</span>
+                <h2 className="text-base font-bold text-slate-900">Document Verification & Requirement-to-Evidence Matrix</h2>
+                <p className="text-xs text-slate-500">
+                  PyMuPDF extracted fields across uploaded PDFs. Notice that the Fire Safety NOC is flagged <strong>DEFICIENT</strong> due to expiration.
+                </p>
+              </div>
+              <span className="font-mono text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded">
+                1 Deficiency Detected
+              </span>
             </div>
-            <ProvenanceBadge type="RULE-COMPUTED" />
           </div>
 
           <EvidenceMatrixTable
             items={matrix}
-            applicationId={appData.id}
+            applicationId={appData?.id || ""}
             onRefresh={loadDemoData}
             canVerify={true}
           />
 
-          <div className="flex justify-between pt-2 border-t">
+
+
+          <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200">
             <button
-              onClick={() => setActiveStep(1)}
-              className="px-4 py-2 border text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-50"
+              onClick={() => setActiveStage(1)}
+              className="text-xs font-semibold text-slate-600 hover:text-slate-900"
             >
-              Back
+              ← Back to Stage 1
             </button>
             <button
-              onClick={() => setActiveStep(3)}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition"
+              onClick={() => setActiveStage(3)}
+              className="flex items-center gap-1.5 bg-[#0a192f] hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition"
             >
-              <span>Next: Officer Scrutiny & Deficiency Lineage</span>
+              <span>Proceed to Stage 3: Deficiency Response & Clause 1.8(g)</span>
               <ArrowRight size={14} />
             </button>
           </div>
         </div>
       )}
 
-      {/* Step 3: Officer Scrutiny & Deficiency */}
-      {activeStep === 3 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
-          <div className="border-b pb-4">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Step 3 of 9</span>
-            <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-              Officer Scrutiny: Deficiency Lineage Record
-            </h3>
-            <p className="text-xs text-slate-600 mt-1">
-              Deficiencies in FLOWSTATE are persistent database records, not simple text notes.
-              Every deficiency retains the APH clause, evidence snippet, page reference, and append-only event lineage.
-            </p>
-          </div>
-
-          {deficiencies.length === 0 ? (
-            <p className="text-xs text-slate-500 italic">No deficiencies recorded.</p>
-          ) : (
-            deficiencies.map((d) => (
-              <div key={d.id} className="border border-slate-200 rounded-xl p-5 space-y-4 bg-slate-50/50">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-sm text-slate-900">{d.deficiency_number}</span>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-mono">
-                        {d.aph_clause_number}
-                      </span>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-rose-100 text-rose-800 uppercase font-mono">
-                        {d.status}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-700 mt-1 font-medium">{d.observation}</p>
-                  </div>
-                  <button
-                    onClick={() =>
-                      openWhyModal({
-                        title: `Deficiency Lineage: ${d.deficiency_number}`,
-                        finding: d.observation,
-                        aphClause: d.aph_clause_number,
-                        documentName: d.original_document_name,
-                        documentPage: d.original_page_number,
-                        extractedSnippet: d.evidence_snippet,
-                        provenance: "RULE-COMPUTED",
-                        auditTrace: [
-                          `Deficiency raised at stage: ${d.stage_raised}`,
-                          `Clause statutory reference: ${d.aph_clause_number}`,
-                          `Associated document: ${d.original_document_name || "NOC PDF"} (Page ${d.original_page_number || 1})`,
-                          `Current status: ${d.status}`,
-                        ],
-                      })
-                    }
-                    className="px-2.5 py-1 bg-white hover:bg-slate-100 border text-slate-700 font-bold text-xs rounded transition flex items-center gap-1"
-                  >
-                    <Compass size={13} className="text-blue-600" />
-                    Why?
-                  </button>
-                </div>
-
-                {/* Lineage History */}
-                <div className="bg-white border rounded-lg p-3 text-xs space-y-2">
-                  <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px] block">
-                    Deficiency Audit Lineage ({d.events.length} events)
-                  </span>
-                  <div className="space-y-1.5 font-mono text-[11px]">
-                    {d.events.map((ev: any) => (
-                      <div key={ev.id} className="flex items-center justify-between text-slate-600 border-b pb-1 last:border-0">
-                        <span>
-                          [{new Date(ev.timestamp).toLocaleTimeString()}] <strong>{ev.event_type}</strong>: {ev.notes}
-                        </span>
-                        <span className="text-slate-400">Actor: {ev.actor_role}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-
-          <div className="flex justify-between pt-2 border-t">
-            <button onClick={() => setActiveStep(2)} className="px-4 py-2 border text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-50">
-              Back
-            </button>
-            <button
-              onClick={() => setActiveStep(4)}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition"
-            >
-              <span>Next: Institution Resubmission Portal</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 4: Institution Resubmission */}
-      {activeStep === 4 && appData && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
-          <div className="border-b pb-4">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Step 4 of 9</span>
-            <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-              Institution Submits Corrected Evidence (Renewed Fire Safety NOC)
-            </h3>
-            <p className="text-xs text-slate-600 mt-1">
-              Meridian Institute has obtained a renewed Fire Safety Certificate (valid through 31-12-2027)
-              and resubmitted it against the deficiency. Click below to simulate instant resubmission.
-            </p>
-          </div>
-
-          <div className="p-5 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-3 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-emerald-950 text-sm">Resubmission Packet Ready</span>
-              <span className="font-mono text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">
-                SIMULATION READY
-              </span>
+      {/* STAGE 3: Deficiency Response & Targeted Re-Scrutiny (1.8g) */}
+      {activeStage === 3 && (
+        <div className="space-y-4">
+          <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 text-xs text-amber-950 space-y-1.5">
+            <div className="flex items-center gap-2 font-bold text-amber-900 text-sm">
+              <Lock size={16} className="text-amber-700" />
+              <span>APH Clause 1.8(g) Strict Scope Lock</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700">
-              <div><strong>Document:</strong> meridian_fire_noc_renewed.pdf</div>
-              <div><strong>New Validity:</strong> 31-12-2027 (Fully Compliant)</div>
-              <div><strong>Certificate Ref:</strong> NOC-MH-FIRE-2024-88</div>
-              <div><strong>Issuing Authority:</strong> Maharashtra Fire Prevention Services</div>
-            </div>
-
-            <div className="pt-2">
-              <button
-                onClick={async () => {
-                  try {
-                    const def = deficiencies[0];
-                    if (def) {
-                      await api.resubmitDeficiency(def.id, {
-                        document_id: def.original_document_id,
-                        page_number: 1,
-                        resubmission_notes: "Submitted renewed Fire Safety NOC valid through 31-12-2027.",
-                      });
-                      await loadDemoData();
-                      alert("Evidence resubmitted successfully!");
-                    }
-                  } catch (e: any) {
-                    alert(e.message);
-                  }
-                }}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow-sm"
-              >
-                Submit Renewed Evidence Packet
-              </button>
-            </div>
-          </div>
-
-          <div className="flex justify-between pt-2 border-t">
-            <button onClick={() => setActiveStep(3)} className="px-4 py-2 border text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-50">
-              Back
-            </button>
-            <button
-              onClick={() => setActiveStep(5)}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition"
-            >
-              <span>Next: Targeted Re-Scrutiny (Clause 1.8(g))</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 5: Targeted Re-Scrutiny (Clause 1.8(g)) */}
-      {activeStep === 5 && appData && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
-          <div className="border-b pb-4">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Step 5 of 9</span>
-            <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-              Enforcement of APH Clause 1.8(g): Locked Checklist & Isolated Out-of-Scope Panel
-            </h3>
-            <p className="text-xs text-slate-600 mt-1">
-              Notice that the re-scrutiny checklist is locked strictly to previously raised deficiencies.
-              Any newly observed issue is segregated in the isolated Out-of-Scope panel to prevent scope creep.
+            <p className="text-[11px] leading-relaxed">
+              Re-scrutiny verifies <strong>ONLY</strong> deficiencies previously identified by the Scrutiny Committee. The checklist below contains exactly the Fire NOC deficiency. Newly noticed findings during re-scrutiny cannot expand this list and are sequestered in the separate Out-of-Scope panel.
             </p>
           </div>
 
           <ReScrutinyPanel
-            applicationId={appData.id}
+            applicationId={appData?.id || ""}
             checklistData={checklistData}
             onRefresh={loadDemoData}
             canVerify={true}
           />
 
-          <div className="flex justify-between pt-2 border-t">
-            <button onClick={() => setActiveStep(4)} className="px-4 py-2 border text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-50">
-              Back
+
+
+          <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200">
+            <button
+              onClick={() => setActiveStage(2)}
+              className="text-xs font-semibold text-slate-600 hover:text-slate-900"
+            >
+              ← Back to Stage 2
             </button>
             <button
-              onClick={() => setActiveStep(6)}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition"
+              onClick={() => setActiveStage(4)}
+              className="flex items-center gap-1.5 bg-[#0a192f] hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition"
             >
-              <span>Next: Conflict-Free EVC Scheduling</span>
+              <span>Proceed to Stage 4: Decision & Corrigendum Impact</span>
               <ArrowRight size={14} />
             </button>
           </div>
         </div>
       )}
 
-      {/* Step 6: EVC Scheduling */}
-      {activeStep === 6 && appData && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
-          <div className="border-b pb-4">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Step 6 of 9</span>
-            <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-              EVC Expert Visit Committee Scheduling (Google OR-Tools CP-SAT)
-            </h3>
-            <p className="text-xs text-slate-600 mt-1">
-              Generates a conflict-free, 3-member expert panel. Experts with institutional conflicts are automatically excluded.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <button
-              onClick={async () => {
-                const res = await api.scheduleEvc(appData.id, "2025-04-18", 3);
-                setEvcSchedule(res);
-              }}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg transition"
-            >
-              Run OR-Tools Constraint Solver
-            </button>
+      {/* STAGE 4: Decision, EVC Scheduling & Corrigendum Impact Gate */}
+      {activeStage === 4 && (
+        <div className="space-y-5 text-xs">
+          {/* EVC Solver Panel */}
+          <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase text-blue-700">Capability: EVC Intelligence</span>
+                <h2 className="text-sm font-bold text-slate-900">Google OR-Tools CP-SAT Committee Allocation</h2>
+                <p className="text-xs text-slate-500">
+                  Enforces institutional conflict-of-interest filters, civil/structural expertise coverage, and travel buffers.
+                </p>
+              </div>
+              <button
+                onClick={handleRunEvcSchedule}
+                disabled={schedulingEvc}
+                className="flex items-center gap-1.5 bg-blue-700 hover:bg-blue-800 text-white font-bold px-3 py-1.5 rounded text-xs transition shadow-xs"
+              >
+                <Cpu size={14} />
+                <span>{schedulingEvc ? "Running CP-SAT Solver..." : "Generate Feasible EVC Schedule"}</span>
+              </button>
+            </div>
 
             {evcSchedule && (
-              <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 text-sm">Suggested EVC Visit Schedule</span>
-                  <ProvenanceBadge type="RULE-COMPUTED" />
+              <div className="p-4 bg-emerald-50/70 border border-emerald-300 rounded-lg text-emerald-950 space-y-2">
+                <div className="flex items-center justify-between font-bold">
+                  <span>Visit Scheduled: {evcSchedule.visit_date} (Status: {evcSchedule.solver_status})</span>
+                  <span className="font-mono text-[10px] px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded">
+                    Zero Institutional Conflicts
+                  </span>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {evcSchedule.assigned_experts.map((exp: any, i: number) => (
-                    <div key={exp.id} className="bg-white border p-3 rounded-lg space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400">Expert {i + 1}</span>
-                      <div className="font-bold text-slate-900">{exp.full_name}</div>
-                      <div className="text-slate-600">{exp.organization} ({exp.city})</div>
-                      <span className="inline-block px-1.5 py-0.5 bg-emerald-50 text-emerald-800 text-[10px] font-mono rounded font-semibold">
-                        Zero Conflict Verified
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="p-3 bg-white border rounded-lg text-slate-600 font-mono text-[11px] space-y-1">
-                  <strong>Satisfied Constraints:</strong>
-                  {evcSchedule.constraints_satisfied.map((c: string, idx: number) => (
-                    <div key={idx}>• {c}</div>
-                  ))}
+                <div className="space-y-1">
+                  <span className="font-semibold text-slate-700">Allocated Committee Experts:</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-1">
+                    {evcSchedule.experts?.map((ex: any) => (
+                      <div key={ex.id} className="p-2 bg-white rounded border border-slate-200 text-[11px]">
+                        <div className="font-bold text-slate-800">{ex.full_name}</div>
+                        <div className="text-slate-500 text-[10px]">{ex.designation} • {ex.organization}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex justify-between pt-2 border-t">
-            <button onClick={() => setActiveStep(5)} className="px-4 py-2 border text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-50">
-              Back
-            </button>
-            <button
-              onClick={() => setActiveStep(7)}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition"
-            >
-              <span>Next: Predictive Intelligence & Statutory Clocks</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 7: Predictive Intelligence & Statutory Deadlines */}
-      {activeStep === 7 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
-          <div className="border-b pb-4">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Step 7 of 9</span>
-            <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-              Predictive Process Intelligence & Statutory Appeal Clocks
-            </h3>
-            <p className="text-xs text-slate-600 mt-1">
-              Machine Learning estimates remaining processing days and delay risk with SHAP explanations.
-              Statutory clocks under Clause 1.11 (Letter of Deficiency) and Clause 2.24 (EC Decision) are strictly separated.
-            </p>
-          </div>
-
-          {/* ML Delay Prediction */}
+          {/* Predictive ML Panel */}
           {prediction && (
-            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Remaining Time & Delay Risk Prediction</h4>
-                  <p className="text-xs text-slate-500 font-mono">Calibrated via Gradient Boosting on 3,000 Synthetic Records</p>
+                  <span className="text-[10px] font-bold uppercase text-purple-700">Capability: Predictive Intelligence</span>
+                  <h2 className="text-sm font-bold text-slate-900">Gradient Boosting Delay Risk & SHAP Factors</h2>
+                  <p className="text-xs text-slate-500">
+                    Synthetic model trained on 3,000 historical application cycles.
+                  </p>
                 </div>
-                <span className="text-xs font-bold font-mono px-2.5 py-1 rounded bg-amber-100 text-amber-900">
-                  Risk Category: {prediction.delay_risk_category} ({prediction.delay_risk_score * 100}%)
+                <div className="font-mono font-bold text-purple-900 bg-purple-50 border border-purple-200 px-3 py-1 rounded">
+                  {prediction.demo_risk_score_display || `Demo risk score: ${Math.round(prediction.delay_risk_score * 100)}/100`}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <span className="font-bold text-slate-800 block text-xs">SHAP Contributing Factors (Model Explanations):</span>
+                <div className="space-y-1.5">
+                  {prediction.shap_factors?.map((f: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200 text-[11px]">
+                      <div>
+                        <span className="font-bold text-slate-800">{f.factor}: </span>
+                        <span className="text-slate-600">{f.description}</span>
+                      </div>
+                      <span className="font-mono font-bold text-rose-700">{f.impact}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-[10px] text-slate-400 italic">
+                Disclaimer: {prediction.disclaimer}
+              </p>
+            </div>
+          )}
+
+          {/* Regulatory Corrigendum Impact Visualizer & Approval Gate */}
+          {amendment && impactReport && (
+            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-amber-700">Signature Capability A</span>
+                  <h2 className="text-sm font-bold text-slate-900">Regulatory Change Impact Intelligence & Human Approval Gate</h2>
+                  <p className="text-xs text-slate-500">
+                    Traverses Amendment &rarr; Clause &rarr; Requirement &rarr; Workflow &rarr; Application &rarr; Recommended Action.
+                  </p>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold border border-amber-300">
+                  ILLUSTRATIVE SYNTHETIC AMENDMENT
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="bg-white p-4 rounded-lg border space-y-2">
-                  <span className="font-bold text-slate-500 text-[10px] uppercase">SHAP Factor Breakdown</span>
-                  <div className="space-y-1.5">
-                    {prediction.shap_factors.map((f: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between text-[11px] border-b pb-1">
-                        <span className="text-slate-800 font-medium">{f.factor}</span>
-                        <span className="font-mono font-bold text-rose-700">{f.impact}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white p-4 rounded-lg border space-y-2">
-                  <span className="font-bold text-slate-500 text-[10px] uppercase">Suggested Operational Interventions</span>
-                  <ul className="list-disc list-inside text-slate-700 space-y-1 text-[11px]">
-                    {prediction.suggested_interventions.map((intv: string, i: number) => (
-                      <li key={i}>{intv}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <p className="text-[11px] text-slate-400 italic font-mono">{prediction.disclaimer}</p>
+              {/* React Flow Graph */}
+              <TraceabilityGraph
+                amendmentNumber={amendment.amendment_number}
+                clauseNumber={impactReport.diffs[0]?.clause_number || "Clause 1.8"}
+                ruleCode="RULE-FIRE-01"
+                workflowName="Starting a new Programme/Level"
+                applicationNumber="APP-2024-MIT-001"
+                recommendedAction={impactReport.items[0]?.recommended_action || "Flag for Human Review"}
+                applicability={impactReport.items[0]?.applicability || "AMBIGUOUS_RETROSPECTIVE"}
+                approvalStatus={impactReport.items[0]?.approval_status || "PENDING"}
+                onApprove={() => handleApproveAction(impactReport.items[0].id, "APPROVED")}
+                onReject={() => handleApproveAction(impactReport.items[0].id, "REJECTED")}
+              />
             </div>
           )}
 
-          {/* Deadlines */}
-          <div className="space-y-3">
-            <h4 className="font-bold text-slate-900 text-sm">Active Statutory Deadlines & Calculation Trace</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-              {deadlines.map((dl: any, idx: number) => (
-                <div key={idx} className="bg-white border rounded-xl p-4 space-y-2 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900">{dl.clause_number}</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold">
-                      {dl.duration_days} {dl.duration_type}
-                    </span>
-                  </div>
-                  <p className="text-slate-600 text-[11px]">{dl.description}</p>
-                  <div className="bg-slate-50 p-2 rounded text-[10px] font-mono text-slate-700">
-                    <div>Trigger: {dl.trigger_event}</div>
-                    <div>Remaining: {dl.days_remaining} days</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-between pt-2 border-t">
-            <button onClick={() => setActiveStep(6)} className="px-4 py-2 border text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-50">
-              Back
-            </button>
+          <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200">
             <button
-              onClick={() => setActiveStep(8)}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition"
+              onClick={() => setActiveStage(3)}
+              className="text-xs font-semibold text-slate-600 hover:text-slate-900"
             >
-              <span>Next: Regulatory Change Impact & Approval Gate</span>
+              ← Back to Stage 3
+            </button>
+            <Link
+              href="/audit"
+              className="flex items-center gap-1.5 bg-[#0a192f] hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-lg text-xs transition"
+            >
+              <span>View Immutable SHA-256 Audit Trail</span>
               <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 8: Regulatory Change Impact & Approval Gate */}
-      {activeStep === 8 && amendment && impactReport && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
-          <div className="border-b pb-4">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Step 8 of 9</span>
-            <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-              Regulatory Change-Impact Intelligence & Mandatory Approval Gate
-            </h3>
-            <p className="text-xs text-slate-600 mt-1">
-              A hypothetical corrigendum on campus clean energy & fire standards is uploaded.
-              FLOWSTATE traverses the dependency graph and flags live applications under <strong>AMBIGUOUS_RETROSPECTIVE</strong> review.
-            </p>
-          </div>
-
-          {/* Interactive React Flow Dependency Graph */}
-          {impactReport.items.length > 0 && (
-            <TraceabilityGraph
-              amendmentNumber={amendment.amendment_number}
-              clauseNumber={impactReport.diffs[0]?.clause_number || "Clause 1.8"}
-              ruleCode="RULE-FIRE-01"
-              workflowName="Starting a new Programme/Level"
-              applicationNumber="APP-2024-MIT-001"
-              recommendedAction={impactReport.items[0]?.recommended_action || "Review applicability"}
-              applicability={impactReport.items[0]?.applicability || "AMBIGUOUS_RETROSPECTIVE"}
-              approvalStatus={impactReport.items[0]?.approval_status || "PENDING"}
-              onApprove={async () => {
-                await api.approveImpactItem(impactReport.items[0].id, "APPROVED", "Approved for academic cycle.");
-                await loadDemoData();
-              }}
-              onReject={async () => {
-                await api.approveImpactItem(impactReport.items[0].id, "REJECTED", "Grandfathered; does not apply.");
-                await loadDemoData();
-              }}
-            />
-          )}
-
-          <div className="flex justify-between pt-2 border-t">
-            <button onClick={() => setActiveStep(7)} className="px-4 py-2 border text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-50">
-              Back
-            </button>
-            <button
-              onClick={() => setActiveStep(9)}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition"
-            >
-              <span>Next: SHA-256 Tamper-Evident Audit Trail</span>
-              <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 9: Audit Trail */}
-      {activeStep === 9 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
-          <div className="border-b pb-4 flex items-center justify-between">
-            <div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Step 9 of 9</span>
-              <h3 className="text-lg font-bold text-slate-900 mt-0.5">
-                Append-Only Audit Trail with Cryptographic SHA-256 Hash Chaining
-              </h3>
-              <p className="text-xs text-slate-600 mt-1">
-                Every state transition, deficiency creation, resubmission, and human approval is cryptographically chained.
-              </p>
-            </div>
-            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-              Chain Integrity: VALID
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
-              <thead className="bg-slate-50 border-b text-slate-600">
-                <tr>
-                  <th className="py-2.5 px-3">Seq</th>
-                  <th className="py-2.5 px-3">Action</th>
-                  <th className="py-2.5 px-3">Entity</th>
-                  <th className="py-2.5 px-3">Current Hash (SHA-256)</th>
-                  <th className="py-2.5 px-3">Previous Hash</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {auditLogs.map((log) => (
-                  <tr key={log.sequence_id} className="hover:bg-slate-50">
-                    <td className="py-2 px-3 font-bold text-slate-900">{log.sequence_id}</td>
-                    <td className="py-2 px-3 font-bold text-blue-700">{log.action}</td>
-                    <td className="py-2 px-3 text-slate-700">{log.entity_type}</td>
-                    <td className="py-2 px-3 text-slate-500 truncate max-w-[150px]">{log.current_hash}</td>
-                    <td className="py-2 px-3 text-slate-400 truncate max-w-[150px]">{log.previous_hash}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs">
-              <CheckCircle size={16} />
-              <span>Full Signature Demonstration Completed Successfully!</span>
-            </div>
-            <button
-              onClick={handleReset}
-              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded transition"
-            >
-              Restart Demonstration
-            </button>
+            </Link>
           </div>
         </div>
       )}

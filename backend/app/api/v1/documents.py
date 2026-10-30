@@ -131,12 +131,15 @@ def get_evidence_matrix(
             rule_code=link.rule_code,
             rule_name=rule.name if rule else link.rule_code,
             aph_clause_number=link.aph_clause_number,
+            substantive_clause=link.substantive_clause or f"APH Clause {link.aph_clause_number}",
+            procedural_clause=link.procedural_clause or "Clause 1.8 (Scrutiny Procedure)",
             required_document_type="DOCUMENT",
             document_id=link.document_id,
             document_filename=doc.original_filename if doc else None,
             page_number=link.page_number,
             extraction_id=link.extraction_id,
             extracted_value=None,
+            confidence=1.0,
             evidence_snippet=link.evidence_snippet,
             validation_result=link.validation_result,
             provenance=link.provenance,
@@ -145,6 +148,7 @@ def get_evidence_matrix(
             deficiency_id=None,
         ))
     return matrix
+
 
 
 @router.post("/{app_id}/verify-evidence/{link_id}")

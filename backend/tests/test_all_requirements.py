@@ -50,7 +50,14 @@ def regadmin_token(db: Session):
     return create_access_token(data={"sub": admin.id, "role": admin.role, "email": admin.email})
 
 
+@pytest.fixture
+def admin_token(db: Session):
+    admin = db.query(User).filter(User.role.in_(["SUPER_ADMIN", "SYSTEM_ADMIN"])).first()
+    return create_access_token(data={"sub": admin.id, "role": admin.role, "email": admin.email})
+
+
 # 1. Different Application Routes (Table 2.3)
+
 def test_01_different_application_routes():
     res = client.get("/api/v1/regulation/workflow-templates")
     assert res.status_code == 200
@@ -342,3 +349,31 @@ def test_17_signature_demo_journey(db: Session, officer_token: str, institution_
     )
     assert verify_res.status_code == 200
     assert verify_res.json()["verification_status"] == "RESOLVED"
+
+
+# 18. Authentication, Demo Access & User Management
+def test_18_auth_and_user_management(admin_token: str):
+    # A. Demo users directory
+    demo_users_res = client.get("/api/v1/auth/demo-users")
+    assert demo_users_res.status_code == 200
+    roles = [u["role"] for u in demo_users_res.json()]
+    assert "EXECUTIVE" in roles
+    assert "REGIONAL_OFFICER" in roles
+    assert "SYSTEM_ADMIN" in roles
+
+    # B. Demo 1-click login
+    demo_login_res = client.post("/api/v1/auth/demo-login", json={"role": "REGIONAL_OFFICER"})
+    assert demo_login_res.status_code == 200
+    assert "access_token" in demo_login_res.json()
+    assert demo_login_res.json()["role"] == "REGIONAL_OFFICER"
+
+    # C. System Admin User Management
+    users_res = client.get("/api/v1/users", headers={"Authorization": f"Bearer {admin_token}"})
+    assert users_res.status_code == 200
+    assert len(users_res.json()) >= 1
+
+    # D. Password reset request
+    forgot_res = client.post("/api/v1/auth/forgot-password", json={"email": "officer.western@flowstate.aicte.gov.in"})
+    assert forgot_res.status_code == 200
+    assert "demo_reset_token" in forgot_res.json()
+

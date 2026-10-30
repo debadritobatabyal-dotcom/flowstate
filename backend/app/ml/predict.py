@@ -116,9 +116,13 @@ class PredictionEngine:
         return {
             "remaining_days_predicted": round(remaining_days, 1),
             "delay_risk_score": round(risk, 2),
+            "demo_risk_score_display": f"Demo risk score: {int(risk * 100)}/100",
             "delay_risk_category": category,
             "shap_factors": shap_factors,
             "suggested_interventions": interventions,
-            "disclaimer": "Synthetic data demonstration. Predictive intelligence estimates are advisory and not official AICTE determinations.",
+            "model_version": "GradientBoosting-v1.2 (Synthetic Train)",
+            "disclaimer": "Synthetic data demonstration. Predictive intelligence estimates are advisory and not official AICTE determinations. Risk scores and SHAP factors reflect model contributions, not proof of causality.",
             "provenance": "RULE-COMPUTED",
         }
+
+

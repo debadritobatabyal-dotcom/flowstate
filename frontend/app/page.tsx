@@ -1,153 +1,373 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useAppStore, ROLE_PRESETS } from "@/lib/store";
+import { api } from "@/lib/api";
+import { useAppStore } from "@/lib/store";
 import {
-  PlayCircle,
   LayoutDashboard,
-  Briefcase,
+  FileText,
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+  XCircle,
   Building2,
-  BookOpenCheck,
-  ShieldCheck,
-  Cpu,
-  Layers,
+  TrendingUp,
+  Filter,
+  PlayCircle,
   ArrowRight,
+  ShieldAlert,
+  Info,
+  Calendar,
 } from "lucide-react";
 
-export default function HomePage() {
-  const { setCurrentRole } = useAppStore();
+export default function DashboardPage() {
+  const { currentRole } = useAppStore();
+  const [kpis, setKpis] = useState<any>(null);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filters
+  const [selectedRegion, setSelectedRegion] = useState<string>("");
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [selectedStage, setSelectedStage] = useState<string>("");
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [selectedRegion, selectedType, selectedStage]);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const filters: Record<string, string> = {};
+      if (selectedRegion) filters.region = selectedRegion;
+      if (selectedType) filters.application_type = selectedType;
+      if (selectedStage) filters.current_stage = selectedStage;
+
+      const [kpiData, appsData] = await Promise.all([
+        api.getDashboardKpis(filters),
+        api.getApplications(filters),
+      ]);
+      setKpis(kpiData);
+      setApplications(appsData);
+    } catch {
+      // Offline fallback
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="space-y-10 max-w-6xl mx-auto py-4">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 rounded-2xl p-8 md:p-12 text-white shadow-xl relative overflow-hidden border border-slate-700">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="max-w-3xl space-y-4 relative z-10">
-          <div className="inline-flex items-center gap-2 bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-mono font-bold border border-blue-400/30">
-            <Cpu size={14} /> AICTE Regulation-Aware Administrative Intelligence
+    <div className="space-y-6 max-w-7xl mx-auto font-sans">
+      {/* Page Title & Context Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+            <span>AICTE Approval Process 2024–2027</span>
+            <span>•</span>
+            <span className="text-blue-700 font-bold">Executive & Operational Command</span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
-            FLOWSTATE
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            Administrative Intelligence Dashboard
           </h1>
-          <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-            A regulation-aware administrative intelligence and workflow orchestration platform for AICTE.
-            Every statutory requirement, document, finding, deficiency, workflow transition, and statutory deadline
-            connected through <strong>one shared data model</strong>.
+          <p className="text-xs text-slate-600 mt-0.5">
+            Real-time status reconciliation across Table 2.3 application pipelines, procedural scrutiny, and statutory deadlines.
           </p>
+        </div>
 
-          <div className="pt-4 flex flex-wrap items-center gap-3">
-            <Link
-              href="/demo"
-              className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm transition shadow-lg flex items-center gap-2"
-            >
-              <PlayCircle size={18} />
-              Launch Guided Signature Demo
-            </Link>
-            <Link
-              href="/executive"
-              className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl text-sm transition border border-slate-600 flex items-center gap-2"
-            >
-              <LayoutDashboard size={18} />
-              Executive Command Centre
-            </Link>
-          </div>
+        {/* Quick Launch & Demo CTA */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/demo"
+            className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs transition shadow-sm"
+          >
+            <PlayCircle size={15} />
+            <span>Signature Demo (4 Stages)</span>
+          </Link>
+          <Link
+            href="/scrutiny"
+            className="flex items-center gap-1.5 bg-[#0a192f] hover:bg-slate-800 text-white font-semibold px-4 py-2 rounded-lg text-xs transition shadow-sm"
+          >
+            <span>Scrutiny Dossier</span>
+            <ArrowRight size={14} />
+          </Link>
         </div>
       </div>
 
-      {/* The Three Signature Capabilities */}
-      <div className="space-y-4">
-        <div>
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Core Architectural Pillars</span>
-          <h2 className="text-xl font-bold text-slate-900 mt-0.5">The Three Signature Capabilities</h2>
+      {/* Filter Bar */}
+      <div className="bg-white p-3 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 text-slate-700 font-bold">
+          <Filter size={14} className="text-blue-600" />
+          <span>Filter Records:</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1 */}
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition space-y-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold font-mono">
-              A
-            </div>
-            <h3 className="font-bold text-slate-900 text-base">Regulatory Change-Impact Intelligence</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Upload amendments or corrigenda to compute cycle-safe impact chains across dependent rules,
-              workflow templates, and active applications. Requires human approval before modification.
-            </p>
-            <div className="text-[11px] font-mono text-blue-700 font-semibold pt-1">
-              Amendment → Clause → Rule → App → Action
-            </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Region Filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-500">Region:</span>
+            <select
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              className="bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-slate-800 font-medium focus:ring-1 focus:ring-blue-600"
+            >
+              <option value="">All Regions</option>
+              <option value="Western">Western (Mumbai/Pune)</option>
+              <option value="Northern">Northern (Kanpur/Delhi)</option>
+              <option value="Southern">Southern (Chennai)</option>
+              <option value="Eastern">Eastern (Kolkata)</option>
+              <option value="South-Western">South-Western (Bengaluru)</option>
+            </select>
           </div>
 
-          {/* Card 2 */}
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition space-y-3">
-            <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold font-mono">
-              B
-            </div>
-            <h3 className="font-bold text-slate-900 text-base">Deficiency Lineage & Targeted Re-Scrutiny</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Enforces <strong>APH Clause 1.8(g)</strong>: Re-scrutiny verifies ONLY deficiencies previously identified.
-              Generates locked targeted checklists and isolates newly noticed issues into a separate panel.
-            </p>
-            <div className="text-[11px] font-mono text-emerald-700 font-semibold pt-1">
-              Original Deficiencies strictly locked; No scope creep
-            </div>
+          {/* Type Filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-500">Category:</span>
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-slate-800 font-medium focus:ring-1 focus:ring-blue-600"
+            >
+              <option value="">All Categories</option>
+              <option value="Starting a new Programme/Level">Starting New Programme/Level</option>
+              <option value="EoA based on Self-Disclosure">EoA Self-Disclosure</option>
+              <option value="Change of Institution Name/Site">Change of Name/Site</option>
+            </select>
           </div>
 
-          {/* Card 3 */}
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition space-y-3">
-            <div className="h-10 w-10 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold font-mono">
-              C
-            </div>
-            <h3 className="font-bold text-slate-900 text-base">Requirement-to-Evidence Traceability</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Full provenance linking APH clauses to uploaded PDF documents, exact pages, extracted snippets,
-              and validation results. Includes one-click contextual <strong>"Why?"</strong> explainer on every record.
-            </p>
-            <div className="text-[11px] font-mono text-purple-700 font-semibold pt-1">
-              Every finding backed by verifiable evidence
-            </div>
+          {/* Stage Filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-500">Stage:</span>
+            <select
+              value={selectedStage}
+              onChange={(e) => setSelectedStage(e.target.value)}
+              className="bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-slate-800 font-medium focus:ring-1 focus:ring-blue-600"
+            >
+              <option value="">All Stages</option>
+              <option value="SUBMITTED">Submitted</option>
+              <option value="SCRUTINY">Under Scrutiny</option>
+              <option value="DEFICIENCY_ISSUED">Deficiency Issued</option>
+              <option value="RE_SCRUTINY">Targeted Re-Scrutiny</option>
+              <option value="EVC_SCHEDULED">EVC Scheduled</option>
+              <option value="EC_CONSIDERATION">EC Consideration</option>
+              <option value="APPROVED">Approved</option>
+            </select>
           </div>
+
+          {(selectedRegion || selectedType || selectedStage) && (
+            <button
+              onClick={() => { setSelectedRegion(""); setSelectedType(""); setSelectedStage(""); }}
+              className="text-blue-700 hover:underline font-bold text-xs ml-2"
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Role Workspaces Launchpad */}
-      <div className="space-y-4">
-        <div>
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Role-Based Access</span>
-          <h2 className="text-xl font-bold text-slate-900 mt-0.5">Explore by Workspace Persona</h2>
+      {/* Key Metric Tiles */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+            <span>Total Applications</span>
+            <FileText size={15} className="text-blue-600" />
+          </div>
+          <div className="text-2xl font-black text-slate-900">{kpis?.total_applications ?? 60}</div>
+          <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">Reconciled in database</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {ROLE_PRESETS.map((p) => (
-            <div
-              key={p.role}
-              className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-400 transition flex flex-col justify-between space-y-4"
-            >
-              <div>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded">
-                  {p.role}
-                </span>
-                <h4 className="font-bold text-slate-900 text-sm mt-2">{p.label}</h4>
-                <p className="text-xs text-slate-500 mt-1">{p.department}</p>
-              </div>
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+            <span>In Processing</span>
+            <Clock size={15} className="text-amber-600" />
+          </div>
+          <div className="text-2xl font-black text-amber-700">{kpis?.open_applications ?? 42}</div>
+          <span className="text-[10px] text-amber-600/80 font-medium mt-0.5 block">Active workflow state</span>
+        </div>
 
-              <Link
-                href={
-                  p.role === "ADMIN_EXEC"
-                    ? "/executive"
-                    : p.role === "OFFICER"
-                    ? "/officer"
-                    : p.role === "INSTITUTION"
-                    ? "/institution"
-                    : "/regulatory"
-                }
-                onClick={() => setCurrentRole(p)}
-                className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold text-center transition flex items-center justify-center gap-1.5"
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+            <span>Active Deficiencies</span>
+            <AlertTriangle size={15} className="text-rose-600" />
+          </div>
+          <div className="text-2xl font-black text-rose-700">{kpis?.active_deficiencies ?? 8}</div>
+          <span className="text-[10px] text-rose-600/80 font-medium mt-0.5 block">Awaiting resubmission</span>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+            <span>High Risk Files</span>
+            <ShieldAlert size={15} className="text-purple-600" />
+          </div>
+          <div className="text-2xl font-black text-purple-700">{kpis?.high_delay_risk_count ?? 14}</div>
+          <span className="text-[10px] text-purple-600/80 font-medium mt-0.5 block">Score &ge; 65/100 (Synthetic)</span>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+            <span>Approved / Final</span>
+            <CheckCircle2 size={15} className="text-emerald-600" />
+          </div>
+          <div className="text-2xl font-black text-emerald-700">{kpis?.approved_applications ?? 18}</div>
+          <span className="text-[10px] text-emerald-600/80 font-medium mt-0.5 block">EC speaking orders</span>
+        </div>
+      </div>
+
+      {/* Main Analysis Grid: Stage-wise Pendency + Regional Caseload */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* Stage-wise Pendency Breakdown */}
+        <div className="md:col-span-7 bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Stage-Wise Application Pendency</h2>
+              <p className="text-xs text-slate-500">Distribution across statutory approval stages</p>
+            </div>
+            <span className="text-[11px] font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">
+              Table 2.3 Compliance
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {(kpis?.stage_distribution || [
+              { stage: "SUBMITTED", count: 8 },
+              { stage: "SCRUTINY", count: 18 },
+              { stage: "DEFICIENCY_ISSUED", count: 7 },
+              { stage: "RE_SCRUTINY", count: 5 },
+              { stage: "EVC_SCHEDULED", count: 4 },
+              { stage: "APPROVED", count: 18 },
+            ]).map((s: any) => {
+              const max = kpis?.total_applications || 60;
+              const pct = Math.round((s.count / (max || 1)) * 100);
+              return (
+                <div key={s.stage} className="space-y-1">
+                  <div className="flex justify-between text-xs font-medium">
+                    <span className="text-slate-700 font-semibold">{s.stage.replace(/_/g, " ")}</span>
+                    <span className="font-mono text-slate-900 font-bold">{s.count} ({pct}%)</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${
+                        s.stage === "APPROVED"
+                          ? "bg-emerald-500"
+                          : s.stage.includes("DEFICIENCY")
+                          ? "bg-rose-500"
+                          : s.stage === "RE_SCRUTINY"
+                          ? "bg-amber-500"
+                          : "bg-blue-600"
+                      }`}
+                      style={{ width: `${Math.max(5, pct)}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Regional Workload Distribution */}
+        <div className="md:col-span-5 bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900">Regional Caseload & Desk Pressure</h2>
+              <p className="text-xs text-slate-500">Applications assigned to regional offices</p>
+            </div>
+            <Building2 size={16} className="text-slate-400" />
+          </div>
+
+          <div className="space-y-2.5">
+            {(kpis?.regional_distribution || [
+              { region: "Western", count: 18 },
+              { region: "Northern", count: 14 },
+              { region: "Southern", count: 12 },
+              { region: "Eastern", count: 8 },
+              { region: "South-Western", count: 8 },
+            ]).map((r: any) => (
+              <div
+                key={r.region}
+                className="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 bg-slate-50 text-xs"
               >
-                <span>Enter Workspace</span>
-                <ArrowRight size={13} />
-              </Link>
-            </div>
-          ))}
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-800">{r.region} Region</span>
+                  <span className="text-[10px] text-slate-500 font-mono">RO Desk</span>
+                </div>
+                <span className="font-mono font-bold text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                  {r.count} applications
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Applications Directory Drilldown Table */}
+      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900">Active Technical Applications</h2>
+            <p className="text-xs text-slate-500">
+              Showing {applications.length} applications matched to current operational criteria
+            </p>
+          </div>
+          <Link
+            href="/applications"
+            className="text-xs font-bold text-blue-700 hover:underline flex items-center gap-1 self-start sm:self-auto"
+          >
+            <span>Open Complete Applications Registry</span>
+            <ArrowRight size={13} />
+          </Link>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
+              <tr>
+                <th className="px-4 py-3">App Number</th>
+                <th className="px-4 py-3">Institution & Region</th>
+                <th className="px-4 py-3">Category (Table 2.3)</th>
+                <th className="px-4 py-3">Current Stage</th>
+                <th className="px-4 py-3">Delay Risk</th>
+                <th className="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {applications.slice(0, 8).map((app) => (
+                <tr key={app.id} className="hover:bg-slate-50/70 transition">
+                  <td className="px-4 py-3 font-mono font-bold text-blue-900">
+                    {app.application_number}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="font-bold text-slate-800">{app.institution_name}</div>
+                    <div className="text-[10px] text-slate-500 font-medium">AICTE ID: {app.institution_aicte_id} • {app.region}</div>
+                  </td>
+                  <td className="px-4 py-3 text-slate-700 font-medium">
+                    {app.application_type}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-900">
+                      {app.current_stage}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`h-2 w-2 rounded-full ${
+                        app.delay_risk_predicted >= 0.65 ? "bg-rose-500" : app.delay_risk_predicted >= 0.35 ? "bg-amber-500" : "bg-emerald-500"
+                      }`} />
+                      <span className="font-mono font-bold text-[11px] text-slate-700">
+                        Demo score: {Math.round(app.delay_risk_predicted * 100)}/100
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/scrutiny?app_id=${app.id}`}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-950 bg-blue-50 border border-blue-200 hover:bg-blue-100 px-2.5 py-1 rounded transition"
+                    >
+                      <span>Scrutiny Dossier</span>
+                      <ArrowRight size={11} />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

@@ -296,6 +296,22 @@ class EvidenceEngine:
 
         doc_by_type = {doc.document_type: doc for doc in documents}
 
+        SUBSTANTIVE_CLAUSE_MAP = {
+            "RULE-LAND-01": "APH 2024-27 Chapter I, Table 1.1 (Normative Land Area Requirement)",
+            "RULE-FIRE-01": "State/UT Fire Prevention & Life Safety Measures Act / APH Annexure 2",
+            "RULE-FACULTY-01": "APH 2024-27 Appendix 7 & 8 (Faculty Cadre Ratio & Cadre Pay Scale)",
+            "RULE-FIN-01": "Clause 2.25 & Appendix 1 (Joint Endowment Reserve Fund & Operating Balance)",
+            "RULE-SOLAR-01": "UNVERIFIED_SYNTHETIC — Illustrative Institutional Sustainability Recommendation",
+        }
+
+        PROCEDURAL_CLAUSE_MAP = {
+            "RULE-LAND-01": "Clause 1.8 (Scrutiny Committee Document Verification)",
+            "RULE-FIRE-01": "Clause 1.8 (Scrutiny Committee Public Safety Verification)",
+            "RULE-FACULTY-01": "Clause 1.9 (Expert Visit Committee Physical/Online Verification)",
+            "RULE-FIN-01": "Clause 1.8 / Clause 2.23 (Financial Audit & Security Scrutiny)",
+            "RULE-SOLAR-01": "Clause 1.8 (Proposed Corrigendum Scrutiny Check)",
+        }
+
         for rule in rules:
             # Map rule to document type
             req_type = "LAND_DOCUMENT"
@@ -355,18 +371,25 @@ class EvidenceEngine:
                 if flag:
                     validation_result = "DEFICIENT"
 
+            substantive = SUBSTANTIVE_CLAUSE_MAP.get(rule.rule_code, f"APH Clause {rule.clause.clause_number if rule.clause else '1.8'}")
+            procedural = PROCEDURAL_CLAUSE_MAP.get(rule.rule_code, "Clause 1.8 (Scrutiny Procedure)")
+
             if existing_link:
                 existing_link.document_id = doc.id if doc else None
                 existing_link.page_number = page_num if doc else None
                 existing_link.extraction_id = extraction.id if extraction else None
                 existing_link.evidence_snippet = evidence_snippet
                 existing_link.validation_result = validation_result
+                existing_link.substantive_clause = substantive
+                existing_link.procedural_clause = procedural
             else:
                 new_link = RequirementEvidenceLink(
                     application_id=application_id,
                     rule_id=rule.id,
                     rule_code=rule.rule_code,
                     aph_clause_number=rule.clause.clause_number if rule.clause else "Clause 1.8",
+                    substantive_clause=substantive,
+                    procedural_clause=procedural,
                     document_id=doc.id if doc else None,
                     page_number=page_num if doc else None,
                     extraction_id=extraction.id if extraction else None,
@@ -378,3 +401,4 @@ class EvidenceEngine:
                 db.add(new_link)
 
         db.commit()
+

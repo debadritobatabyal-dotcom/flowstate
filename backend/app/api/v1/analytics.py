@@ -1,5 +1,5 @@
-from typing import Any, Dict, List
-from fastapi import APIRouter, Depends
+from typing import Any, Dict, List, Optional
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.core.database import get_db
@@ -15,21 +15,33 @@ router = APIRouter()
 
 @router.get("/dashboard-kpis")
 def get_dashboard_kpis(
+    region: Optional[str] = None,
+    application_type: Optional[str] = None,
+    current_stage: Optional[str] = None,
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    total_apps = db.query(Application).count()
-    open_apps = db.query(Application).filter(Application.status.in_(["IN_PROGRESS", "DEFICIENT"])).count()
-    approved_apps = db.query(Application).filter(Application.status == "APPROVED").count()
-    rejected_apps = db.query(Application).filter(Application.status == "REJECTED").count()
-    high_risk_apps = db.query(Application).filter(Application.delay_risk_predicted >= 0.65).count()
+    base_query = db.query(Application)
+    if application_type:
+        base_query = base_query.filter(Application.application_type == application_type)
+    if current_stage:
+        base_query = base_query.filter(Application.current_stage == current_stage)
+    if region:
+        base_query = base_query.join(Institution, Application.institution_id == Institution.id).filter(Institution.region == region)
+
+    total_apps = base_query.count()
+    open_apps = base_query.filter(Application.status.in_(["IN_PROGRESS", "DEFICIENT"])).count()
+    approved_apps = base_query.filter(Application.status == "APPROVED").count()
+    rejected_apps = base_query.filter(Application.status == "REJECTED").count()
+    high_risk_apps = base_query.filter(Application.delay_risk_predicted >= 0.65).count()
 
     # Stage-wise pendency
-    stage_counts = (
+    stage_counts_query = (
         db.query(Application.current_stage, func.count(Application.id))
-        .group_by(Application.current_stage)
-        .all()
     )
+    if region:
+        stage_counts_query = stage_counts_query.join(Institution, Application.institution_id == Institution.id).filter(Institution.region == region)
+    stage_counts = stage_counts_query.group_by(Application.current_stage).all()
     stage_distribution = [{"stage": s, "count": c} for s, c in stage_counts]
 
     # Regional breakdown
@@ -64,13 +76,20 @@ def get_dashboard_kpis(
         "approved_applications": approved_apps,
         "rejected_applications": rejected_apps,
         "high_delay_risk_count": high_risk_apps,
+        "high_delay_risk_label": "Applications with Delay Risk Score >= 65/100",
         "active_deficiencies": active_deficiencies,
         "active_amendments": active_amendments,
         "stage_distribution": stage_distribution,
         "regional_distribution": regional_distribution,
         "officer_workload": officer_workload,
-        "disclaimer": "Prototype — synthetic data. No live AICTE databases or APIs are connected.",
+        "applied_filters": {
+            "region": region,
+            "application_type": application_type,
+            "current_stage": current_stage,
+        },
+        "disclaimer": "DEMO ENVIRONMENT — Synthetic data. No live AICTE databases or APIs are connected.",
     }
+
 
 
 @router.get("/prediction/{app_id}")

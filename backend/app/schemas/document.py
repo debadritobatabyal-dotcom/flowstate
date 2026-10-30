@@ -44,6 +44,8 @@ class EvidenceMatrixItem(BaseModel):
     rule_code: str
     rule_name: str
     aph_clause_number: str
+    substantive_clause: Optional[str] = None
+    procedural_clause: Optional[str] = None
     required_document_type: str
     document_id: Optional[str] = None
     document_filename: Optional[str] = None
@@ -51,11 +53,13 @@ class EvidenceMatrixItem(BaseModel):
     extraction_id: Optional[str] = None
     extracted_value: Optional[str] = None
     evidence_snippet: Optional[str] = None
-    validation_result: str  # COMPLIANT, DEFICIENT, INCOMPLETE, PENDING_REVIEW
+    confidence: Optional[float] = 1.0
+    validation_result: str  # COMPLIANT, DEFICIENT, INCOMPLETE, INCONCLUSIVE, NEEDS_HUMAN_REVIEW
     provenance: str  # RULE-COMPUTED, SUGGESTED, VERIFIED, SIMULATED
     officer_verification_status: str  # PENDING, VERIFIED, DEFICIENCY_RAISED
     officer_notes: Optional[str] = None
     deficiency_id: Optional[str] = None
+
 
 
 class VerifyEvidenceRequest(BaseModel):

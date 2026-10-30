@@ -155,12 +155,18 @@ export default function RegulatoryWorkspace() {
       {activeTab === "diff" && selectedAmd && impactReport && (
         <div className="space-y-6">
           {/* Amendment Card */}
-          <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-sm space-y-3">
+          <div className="bg-[#0a192f] text-white rounded-xl p-6 shadow-sm space-y-3 border border-slate-800">
+            {/* Prominent Warning Banner */}
+            <div className="bg-amber-500 text-slate-950 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2">
+              <ShieldAlert size={16} className="shrink-0 text-slate-950" />
+              <span>ILLUSTRATIVE SYNTHETIC AMENDMENT — NOT AN OFFICIAL AICTE NOTIFICATION.</span>
+            </div>
+
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
-                <span className="text-[10px] font-mono uppercase text-indigo-400 font-bold">Gazette Notification Corrigendum</span>
+                <span className="text-[10px] font-mono uppercase text-blue-300 font-bold">Simulated Policy Corrigendum</span>
                 <h3 className="text-base font-bold text-white mt-0.5">{selectedAmd.title}</h3>
-                <span className="font-mono text-xs text-slate-400">Ref: {selectedAmd.amendment_number} | Gazette: {selectedAmd.gazette_notification_no}</span>
+                <span className="font-mono text-xs text-slate-400">Identifier: {selectedAmd.amendment_number} • Demonstrates Ambiguous Retrospective Impact</span>
               </div>
               <span className="font-mono text-xs px-2.5 py-1 bg-amber-500 text-slate-950 font-bold rounded">
                 {selectedAmd.status}
@@ -168,6 +174,7 @@ export default function RegulatoryWorkspace() {
             </div>
             <p className="text-xs text-slate-300 leading-relaxed">{selectedAmd.summary}</p>
           </div>
+
 
           {/* Clause Diff View */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">

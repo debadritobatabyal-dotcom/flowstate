@@ -119,17 +119,20 @@ class RequirementEvidenceLink(Base):
     rule_id = Column(String(36), ForeignKey("rules.id"), nullable=False, index=True)
     rule_code = Column(String(100), nullable=False)
     aph_clause_number = Column(String(50), nullable=False)
+    substantive_clause = Column(String(255), nullable=True)
+    procedural_clause = Column(String(255), nullable=True)
     document_id = Column(String(36), ForeignKey("documents.id"), nullable=True)
     page_number = Column(Integer, nullable=True)
     extraction_id = Column(String(36), ForeignKey("extractions.id"), nullable=True)
     evidence_snippet = Column(Text, nullable=True)
-    validation_result = Column(String(50), default="COMPLIANT")  # COMPLIANT, DEFICIENT, INCOMPLETE, PENDING_REVIEW
+    validation_result = Column(String(50), default="COMPLIANT")  # COMPLIANT, DEFICIENT, INCOMPLETE, INCONCLUSIVE, NEEDS_HUMAN_REVIEW
     provenance = Column(String(50), default="RULE-COMPUTED")  # RULE-COMPUTED, SUGGESTED, VERIFIED, SIMULATED
     officer_verification_status = Column(String(50), default="PENDING")  # PENDING, VERIFIED, DEFICIENCY_RAISED
     officer_notes = Column(Text, nullable=True)
     verified_by_id = Column(String(36), nullable=True)
     verified_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
 
     application = relationship("Application", back_populates="requirement_evidence_links")
     rule = relationship("Rule")
