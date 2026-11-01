@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { ProvenanceBadge } from "@/components/ProvenanceBadge";
+import { ContourBadgeSwatch } from "@/components/ContourGraphic";
 import {
   BarChart,
   Bar,
@@ -23,9 +24,10 @@ import {
   Layers,
   ArrowUpRight,
   TrendingUp,
+  ArrowRight,
 } from "lucide-react";
 
-const COLORS = ["#102a43", "#334e68", "#627d98", "#9fb3c8", "#bcccdc"];
+const COLORS = ["#141b26", "#155386", "#3e7da3", "#65a9c2", "#93d9e4"];
 
 export default function ExecutiveDashboard() {
   const [kpis, setKpis] = useState<any>(null);
@@ -44,8 +46,8 @@ export default function ExecutiveDashboard() {
 
   if (loading || !kpis) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="h-8 w-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center min-h-[400px] text-xs font-mono font-semibold text-ink-secondary">
+        Loading Executive Roster Intelligence...
       </div>
     );
   }
@@ -58,16 +60,24 @@ export default function ExecutiveDashboard() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-7xl mx-auto font-sans pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-neutral">
         <div>
-          <h2 className="text-2xl font-black text-slate-900">Executive Command Centre</h2>
-          <p className="text-xs text-slate-500 font-mono">
-            AICTE National Application Roster & Institutional Processing Intelligence
+          <div className="flex items-center gap-2 text-xs font-mono font-semibold text-ink-secondary mb-1">
+            <ContourBadgeSwatch variant="flow" />
+            <span>AICTE Apex Directorate</span>
+            <span>•</span>
+            <span className="text-flow-core font-bold">Executive Roster Intelligence</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-ink tracking-tight">
+            Executive Command Centre
+          </h1>
+          <p className="text-xs text-ink-secondary mt-1 max-w-3xl leading-relaxed">
+            National application roster, processing trends, and stage-wise delay risks under AICTE Approval Process Handbook (2024–2027).
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <ProvenanceBadge type="RULE-COMPUTED" />
           <ProvenanceBadge type="SIMULATED" />
         </div>
@@ -77,88 +87,108 @@ export default function ExecutiveDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <button
           onClick={() => setSelectedFilter("ALL")}
-          className={`p-5 rounded-2xl border text-left transition shadow-sm ${
-            selectedFilter === "ALL" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-900 border-slate-200 hover:border-slate-300"
+          className={`p-5 rounded-sm border text-left transition shadow-xs ${
+            selectedFilter === "ALL"
+              ? "bg-navy text-paper border-navy shadow-sheet"
+              : "bg-paper text-ink border-neutral hover:bg-surface"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider opacity-70">Total Docket</span>
+            <span className="text-xs font-heading font-bold uppercase tracking-wider opacity-80">Total Docket</span>
             <FileText size={18} />
           </div>
-          <div className="text-3xl font-black mt-2">{kpis.total_applications}</div>
-          <p className="text-[11px] opacity-70 mt-1">Live applications in system</p>
+          <div className="text-3xl font-heading font-bold mt-2">{kpis.total_applications}</div>
+          <p className={`text-[11px] mt-1 ${selectedFilter === "ALL" ? "text-neutral/70" : "text-ink-secondary"}`}>Live applications in system</p>
         </button>
 
         <button
           onClick={() => setSelectedFilter("OPEN")}
-          className={`p-5 rounded-2xl border text-left transition shadow-sm ${
-            selectedFilter === "OPEN" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-900 border-slate-200 hover:border-slate-300"
+          className={`p-5 rounded-sm border text-left transition shadow-xs ${
+            selectedFilter === "OPEN"
+              ? "bg-navy text-paper border-navy shadow-sheet"
+              : "bg-paper text-ink border-neutral hover:bg-surface"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider opacity-70">Open Processing</span>
-            <Clock size={18} className="text-blue-500" />
+            <span className="text-xs font-heading font-bold uppercase tracking-wider opacity-80">Open Processing</span>
+            <Clock size={18} className="text-flow-core" />
           </div>
-          <div className="text-3xl font-black mt-2 text-blue-500">{kpis.open_applications}</div>
-          <p className="text-[11px] opacity-70 mt-1">Under Scrutiny, EVC, or SAC</p>
+          <div className="text-3xl font-heading font-bold mt-2 text-flow-core">{kpis.open_applications}</div>
+          <p className={`text-[11px] mt-1 ${selectedFilter === "OPEN" ? "text-neutral/70" : "text-ink-secondary"}`}>Under Scrutiny or EVC</p>
         </button>
 
         <button
           onClick={() => setSelectedFilter("DEFICIENT")}
-          className={`p-5 rounded-2xl border text-left transition shadow-sm ${
-            selectedFilter === "DEFICIENT" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-900 border-slate-200 hover:border-slate-300"
+          className={`p-5 rounded-sm border text-left transition shadow-xs ${
+            selectedFilter === "DEFICIENT"
+              ? "bg-navy text-paper border-navy shadow-sheet"
+              : "bg-paper text-ink border-neutral hover:bg-surface"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider opacity-70">Active Deficiencies</span>
-            <AlertTriangle size={18} className="text-rose-500" />
+            <span className="text-xs font-heading font-bold uppercase tracking-wider opacity-80">Active Deficiencies</span>
+            <AlertTriangle size={18} className="text-shallow-core" />
           </div>
-          <div className="text-3xl font-black mt-2 text-rose-500">{kpis.active_deficiencies}</div>
-          <p className="text-[11px] opacity-70 mt-1">Awaiting re-scrutiny resolution</p>
+          <div className="text-3xl font-heading font-bold mt-2 text-shallow-core">{kpis.active_deficiencies}</div>
+          <p className={`text-[11px] mt-1 ${selectedFilter === "DEFICIENT" ? "text-neutral/70" : "text-ink-secondary"}`}>Awaiting re-scrutiny resolution</p>
         </button>
 
         <button
           onClick={() => setSelectedFilter("HIGH_RISK")}
-          className={`p-5 rounded-2xl border text-left transition shadow-sm ${
-            selectedFilter === "HIGH_RISK" ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-900 border-slate-200 hover:border-slate-300"
+          className={`p-5 rounded-sm border text-left transition shadow-xs ${
+            selectedFilter === "HIGH_RISK"
+              ? "bg-navy text-paper border-navy shadow-sheet"
+              : "bg-paper text-ink border-neutral hover:bg-surface"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider opacity-70">Predicted Delay Risk</span>
-            <TrendingUp size={18} className="text-amber-500" />
+            <span className="text-xs font-heading font-bold uppercase tracking-wider opacity-80">Predicted Delay Risk</span>
+            <TrendingUp size={18} className="text-deep-core" />
           </div>
-          <div className="text-3xl font-black mt-2 text-amber-500">{kpis.high_delay_risk_count}</div>
-          <p className="text-[11px] opacity-70 mt-1">Probability &gt; 65% of cycle breach</p>
+          <div className="text-3xl font-heading font-bold mt-2 text-deep-core">{kpis.high_delay_risk_count}</div>
+          <p className={`text-[11px] mt-1 ${selectedFilter === "HIGH_RISK" ? "text-neutral/70" : "text-ink-secondary"}`}>Probability &gt; 65% of cycle breach</p>
         </button>
       </div>
 
       {/* Visual Charts: Stage Pendency & Regional Distribution */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Stage Pendency */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="font-bold text-slate-900 text-sm">Stage-Wise File Pendency</h4>
-            <span className="text-[11px] text-slate-500 font-mono">Dwell Volume</span>
+        <div className="bg-paper border border-neutral rounded-sm p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between border-b border-neutral pb-2">
+            <h4 className="font-heading font-bold text-ink text-sm">Stage-Wise File Pendency</h4>
+            <span className="text-[10px] font-mono text-ink-secondary bg-surface px-2 py-0.5 rounded-full border border-neutral">
+              Statutory Stages
+            </span>
           </div>
-          <div className="h-64 w-full">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={kpis.stage_distribution}>
-                <XAxis dataKey="stage" tick={{ fontSize: 10 }} interval={0} angle={-25} textAnchor="end" height={45} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#1e293b" radius={[4, 4, 0, 0]} />
+                <XAxis dataKey="stage" stroke="#4a5059" fontSize={10} tickLine={false} />
+                <YAxis stroke="#4a5059" fontSize={10} tickLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#14171b",
+                    borderRadius: "4px",
+                    border: "none",
+                    color: "#fbfcfc",
+                    fontSize: "12px",
+                  }}
+                />
+                <Bar dataKey="count" fill="#155386" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Regional Distribution */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <h4 className="font-bold text-slate-900 text-sm">Regional Caseload Distribution</h4>
-            <span className="text-[11px] text-slate-500 font-mono">5 AICTE Regions</span>
+        <div className="bg-paper border border-neutral rounded-sm p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between border-b border-neutral pb-2">
+            <h4 className="font-heading font-bold text-ink text-sm">Regional Caseload Distribution</h4>
+            <span className="text-[10px] font-mono text-ink-secondary bg-surface px-2 py-0.5 rounded-full border border-neutral">
+              Regional Desks
+            </span>
           </div>
-          <div className="h-64 w-full flex items-center justify-center">
+          <div className="h-64 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -168,84 +198,88 @@ export default function ExecutiveDashboard() {
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
-                  label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
                 >
                   {kpis.regional_distribution.map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#14171b",
+                    borderRadius: "4px",
+                    border: "none",
+                    color: "#fbfcfc",
+                    fontSize: "12px",
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Drill-Down Applications Table */}
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm space-y-2">
-        <div className="p-5 border-b border-slate-200 flex items-center justify-between">
+      {/* Filtered Application Roster Table */}
+      <div className="bg-paper border border-neutral rounded-sm overflow-hidden shadow-xs">
+        <div className="p-4 border-b border-neutral flex items-center justify-between bg-surface">
           <div>
-            <h4 className="font-bold text-slate-900 text-sm">
-              Application Records Drill-Down (Filter: {selectedFilter})
+            <h4 className="font-heading font-bold text-ink text-sm">
+              Filtered Applications: {selectedFilter} ({filteredApps.length})
             </h4>
-            <p className="text-xs text-slate-500">Showing {filteredApps.length} matched files</p>
+            <p className="text-xs text-ink-secondary">Click on any file to open the scrutiny dossier</p>
           </div>
-          <span className="text-xs text-slate-400 font-mono">Click file to inspect full lineage</span>
+          <button
+            onClick={() => setSelectedFilter("ALL")}
+            className="text-xs text-flow-core hover:underline font-bold"
+          >
+            Reset Filter
+          </button>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider">
+            <thead className="bg-surface/60 border-b border-neutral text-ink-secondary font-mono font-bold uppercase tracking-wider text-[10px]">
               <tr>
-                <th className="py-3 px-4">Application No.</th>
+                <th className="py-3 px-4">Application ID</th>
                 <th className="py-3 px-4">Institution Name</th>
+                <th className="py-3 px-4">Region</th>
                 <th className="py-3 px-4">Type</th>
                 <th className="py-3 px-4">Stage</th>
-                <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Delay Risk</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3 px-4 text-right">Dossier</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredApps.slice(0, 15).map((app) => (
-                <tr key={app.id} className="hover:bg-slate-50 transition">
-                  <td className="py-3 px-4 font-mono font-bold text-slate-900">{app.application_number}</td>
-                  <td className="py-3 px-4 font-medium text-slate-800">{app.institution_name}</td>
-                  <td className="py-3 px-4 text-slate-600 truncate max-w-[150px]">{app.application_type}</td>
-                  <td className="py-3 px-4 font-mono text-[11px] font-semibold text-blue-800">{app.current_stage}</td>
-                  <td className="py-3 px-4">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
-                        app.status === "APPROVED"
-                          ? "bg-emerald-50 text-emerald-800"
-                          : app.status === "DEFICIENT"
-                          ? "bg-rose-50 text-rose-800"
-                          : "bg-blue-50 text-blue-800"
-                      }`}
-                    >
-                      {app.status}
+            <tbody className="divide-y divide-neutral/50">
+              {filteredApps.slice(0, 10).map((app) => (
+                <tr key={app.id} className="hover:bg-surface/50 transition">
+                  <td className="py-3.5 px-4 font-mono font-bold text-flow-core">{app.application_number}</td>
+                  <td className="py-3.5 px-4 font-heading font-bold text-ink">{app.institution_name}</td>
+                  <td className="py-3.5 px-4 text-ink-secondary">{app.region}</td>
+                  <td className="py-3.5 px-4 text-ink-secondary font-medium">{app.application_type}</td>
+                  <td className="py-3.5 px-4">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface border border-neutral text-ink">
+                      {app.current_stage}
                     </span>
                   </td>
-                  <td className="py-3 px-4 font-mono">
+                  <td className="py-3.5 px-4">
                     <span
-                      className={`font-bold ${
+                      className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                         app.delay_risk_predicted >= 0.65
-                          ? "text-rose-600"
-                          : app.delay_risk_predicted >= 0.4
-                          ? "text-amber-600"
-                          : "text-emerald-600"
+                          ? "bg-rose-50 text-rose-900 border-rose-200"
+                          : "bg-surface text-ink border-neutral"
                       }`}
                     >
                       {(app.delay_risk_predicted * 100).toFixed(0)}%
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-right">
+                  <td className="py-3.5 px-4 text-right">
                     <Link
-                      href={`/officer?appId=${app.id}`}
-                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded text-[11px] inline-flex items-center gap-1"
+                      href={`/scrutiny?app_id=${app.id}`}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-flow-core hover:text-navy bg-surface border border-neutral px-2.5 py-1 rounded-full transition"
                     >
-                      <span>Open Dossier</span>
-                      <ArrowUpRight size={12} />
+                      <span>Review</span>
+                      <ArrowRight size={11} />
                     </Link>
                   </td>
                 </tr>

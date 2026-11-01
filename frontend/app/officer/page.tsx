@@ -6,6 +6,7 @@ import { useAppStore } from "@/lib/store";
 import { EvidenceMatrixTable } from "@/components/EvidenceMatrixTable";
 import { ReScrutinyPanel } from "@/components/ReScrutinyPanel";
 import { ProvenanceBadge } from "@/components/ProvenanceBadge";
+import { ContourBadgeSwatch } from "@/components/ContourGraphic";
 import {
   FileText,
   Clock,
@@ -68,8 +69,8 @@ function OfficerWorkspaceContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="h-8 w-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center min-h-[400px] text-xs font-mono font-semibold text-ink-secondary">
+        Loading Regional Scrutiny Desk...
       </div>
     );
   }
@@ -85,22 +86,25 @@ function OfficerWorkspaceContent() {
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-7xl mx-auto font-sans pb-12">
       {/* Officer Header with Application Selector */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-paper border border-neutral rounded-sm p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
-            Regional Officer Dossier
+          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-flow-core block">
+            Regional Scrutiny Directorate
           </span>
-          <h2 className="text-xl font-bold text-slate-900 mt-0.5">Scrutiny & Evidence Verification Desk</h2>
+          <h2 className="text-xl font-heading font-bold text-ink mt-0.5">Scrutiny & Evidence Verification Desk</h2>
+          <p className="text-xs text-ink-secondary mt-0.5">
+            Regional Officer Verification Queue • Western Regional Office (Mumbai)
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold text-slate-600">Active File:</label>
+          <label className="text-xs font-semibold text-ink-secondary">Active Dossier:</label>
           <select
             value={selectedApp?.id || ""}
             onChange={(e) => loadAppDetail(e.target.value)}
-            className="text-xs font-bold bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-900"
+            className="p-2 border border-neutral rounded-full text-xs font-mono font-bold bg-surface text-ink focus:outline-none"
           >
             {applications.map((app) => (
               <option key={app.id} value={app.id}>
@@ -112,37 +116,52 @@ function OfficerWorkspaceContent() {
       </div>
 
       {selectedApp && (
-        <div className="space-y-5">
-          {/* File Meta Summary */}
-          <div className="bg-slate-900 text-white rounded-2xl p-5 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
-            <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Institution</span>
-              <div className="font-bold text-sm text-white mt-0.5">{selectedApp.institution_name}</div>
+        <div className="space-y-6">
+          {/* Key Context Card */}
+          <div className="bg-navy text-paper rounded-sm p-6 space-y-4 shadow-sheet border border-navy-light">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-navy-light pb-3 gap-2">
+              <div>
+                <span className="text-[10px] font-mono uppercase text-flow-rim font-bold">Verified Dossier</span>
+                <h3 className="text-base sm:text-lg font-heading font-bold text-paper mt-0.5">{selectedApp.institution_name}</h3>
+                <span className="font-mono text-xs text-neutral/70">
+                  Application Number: {selectedApp.application_number} • AICTE ID: {selectedApp.institution_aicte_id}
+                </span>
+              </div>
+              <span className="font-mono text-xs font-bold px-3 py-1 bg-flow-core rounded-full text-paper self-start sm:self-auto">
+                {selectedApp.current_stage}
+              </span>
             </div>
-            <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Category</span>
-              <div className="font-bold text-blue-300 mt-0.5 truncate">{selectedApp.application_type}</div>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Stage</span>
-              <div className="font-bold text-emerald-400 mt-0.5">{selectedApp.current_stage}</div>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold">Delay Risk</span>
-              <div className="font-bold text-amber-400 mt-0.5">{(selectedApp.delay_risk_predicted * 100).toFixed(0)}%</div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
+              <div>
+                <span className="text-neutral/70 block text-[10px]">Processing Route</span>
+                <span className="text-flow-rim font-bold">{selectedApp.application_type}</span>
+              </div>
+              <div>
+                <span className="text-neutral/70 block text-[10px]">Status</span>
+                <span className="text-emerald-400 font-bold">{selectedApp.status}</span>
+              </div>
+              <div>
+                <span className="text-neutral/70 block text-[10px]">Regulation Version</span>
+                <span className="text-paper">{selectedApp.regulation_version}</span>
+              </div>
+              <div>
+                <span className="text-neutral/70 block text-[10px]">Region / State</span>
+                <span className="text-shallow-rim font-bold">{selectedApp.region} Region</span>
+              </div>
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto text-xs font-bold">
+          {/* Dossier Tabs */}
+          <div className="flex items-center gap-2 border-b border-neutral text-xs font-semibold overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2.5 border-b-2 transition whitespace-nowrap ${
+                className={`pb-3 px-3.5 border-b-2 font-heading transition whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "border-slate-900 text-slate-900"
-                    : "border-transparent text-slate-500 hover:text-slate-800"
+                    ? "border-flow-core text-flow-core font-bold"
+                    : "border-transparent text-ink-secondary hover:text-ink"
                 }`}
               >
                 {tab.label}
@@ -152,33 +171,31 @@ function OfficerWorkspaceContent() {
 
           {/* Tab 1: Evidence Matrix */}
           {activeTab === "matrix" && (
-            <EvidenceMatrixTable
-              items={matrix}
-              applicationId={selectedApp.id}
-              onRefresh={() => loadAppDetail(selectedApp.id)}
-              canVerify={true}
-            />
+            <div className="space-y-4">
+              <div className="p-3 bg-surface border border-neutral rounded-sm text-xs text-ink">
+                <strong>Officer Operational Instruction:</strong> Review each substantive requirement against the extracted evidence snippet. Click &ldquo;Why?&rdquo; to view statutory provenance, or &ldquo;Review&rdquo; to confirm compliance or raise a formal Clause 1.8(g) deficiency.
+              </div>
+              <EvidenceMatrixTable
+                items={matrix}
+                applicationId={selectedApp.id}
+                onRefresh={() => loadAppDetail(selectedApp.id)}
+                canVerify={true}
+              />
+            </div>
           )}
 
-          {/* Tab 2: Overview & Timeline */}
+          {/* Tab 2: Timeline */}
           {activeTab === "timeline" && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-              <h4 className="font-bold text-slate-900 text-sm">Application Milestone Progression</h4>
-              <div className="space-y-3 font-mono text-xs">
-                {selectedApp.events.map((ev: any, idx: number) => (
-                  <div key={idx} className="flex items-start gap-3 border-l-2 border-slate-200 pl-4 py-1">
-                    <div className="w-2 h-2 rounded-full bg-blue-600 mt-1.5 -ml-[21px]" />
-                    <div className="space-y-0.5">
-                      <div className="font-bold text-slate-900">
-                        {ev.event_type} {ev.from_stage && `(${ev.from_stage} → ${ev.to_stage})`}
-                      </div>
-                      <div className="text-slate-500 text-[11px]">
-                        Actor: {ev.actor_role} | {new Date(ev.created_at).toLocaleString()}
-                      </div>
-                      {ev.metadata?.notes && (
-                        <p className="text-slate-700 font-sans text-xs">{ev.metadata.notes}</p>
-                      )}
+            <div className="bg-paper border border-neutral rounded-sm p-6 space-y-4 shadow-xs text-xs">
+              <h4 className="font-heading font-bold text-ink text-sm">Application History</h4>
+              <div className="space-y-3">
+                {selectedApp.events?.map((ev: any, idx: number) => (
+                  <div key={idx} className="p-3 bg-surface rounded-sm border border-neutral flex items-center justify-between">
+                    <div>
+                      <span className="font-heading font-bold text-ink block">{ev.event_type}</span>
+                      <span className="text-ink-secondary text-[11px]">Moved to {ev.to_stage}</span>
                     </div>
+                    <span className="text-[10px] font-mono text-ink-secondary">{new Date(ev.created_at).toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -187,48 +204,48 @@ function OfficerWorkspaceContent() {
 
           {/* Tab 3: Documents */}
           {activeTab === "documents" && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-              <h4 className="font-bold text-slate-900 text-sm">Uploaded Institutional Records</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedApp.documents.map((doc: any) => (
-                  <div key={doc.id} className="border p-4 rounded-xl space-y-2 text-xs bg-slate-50/50">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900 truncate max-w-[200px]">{doc.original_filename}</span>
-                      <span className="font-mono text-[10px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded">
-                        {doc.document_type}
-                      </span>
+            <div className="bg-paper border border-neutral rounded-sm p-6 space-y-4 shadow-xs text-xs">
+              <h4 className="font-heading font-bold text-ink text-sm">Uploaded Institutional Documents</h4>
+              <div className="divide-y divide-neutral/50">
+                {selectedApp.documents?.map((doc: any) => (
+                  <div key={doc.id} className="py-3 flex items-center justify-between">
+                    <div>
+                      <div className="font-heading font-bold text-ink">{doc.filename}</div>
+                      <span className="text-[10px] font-mono text-ink-secondary">{doc.document_type} • {doc.page_count} pages</span>
                     </div>
-                    <div className="text-slate-500 text-[11px] flex items-center justify-between font-mono">
-                      <span>Pages: {doc.page_count}</span>
-                      <span>Uploaded: {new Date(doc.uploaded_at).toLocaleDateString()}</span>
-                    </div>
+                    <span className="font-mono text-[10px] bg-surface border border-neutral text-ink px-2 py-0.5 rounded-full font-bold">
+                      {doc.verification_status}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Tab 4: Deficiencies & Lineage */}
+          {/* Tab 4: Deficiencies */}
           {activeTab === "deficiencies" && (
-            <div className="space-y-4">
-              {deficiencies.map((d) => (
-                <div key={d.id} className="bg-white border rounded-xl p-5 space-y-3 shadow-sm text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-sm text-slate-900">{d.deficiency_number}</span>
-                    <span className="px-2 py-0.5 rounded font-mono font-bold bg-rose-50 text-rose-800 border border-rose-200">
-                      {d.status}
-                    </span>
+            <div className="bg-paper border border-neutral rounded-sm p-6 space-y-4 shadow-xs text-xs">
+              <h4 className="font-heading font-bold text-ink text-sm">Identified Deficiencies & Audit Lineage</h4>
+              <div className="space-y-3">
+                {deficiencies.map((d: any) => (
+                  <div key={d.id} className="p-4 border border-neutral rounded-sm bg-surface space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-bold text-rose-800">{d.deficiency_number}</span>
+                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-paper border border-neutral font-bold">{d.status}</span>
+                    </div>
+                    <p className="text-ink font-medium leading-relaxed">{d.observation}</p>
+                    {d.institution_response && (
+                      <div className="p-2.5 bg-paper rounded-sm border border-neutral text-[11px] text-flow-core">
+                        <strong>Response:</strong> {d.institution_response}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-slate-800 font-medium">{d.observation}</p>
-                  <div className="bg-slate-50 p-2.5 rounded font-mono text-[11px] text-slate-600">
-                    Clause: {d.aph_clause_number} | Stage: {d.stage_raised} | Responsible: {d.responsible_party}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Tab 5: Targeted Re-Scrutiny */}
+          {/* Tab 5: Re-Scrutiny Panel */}
           {activeTab === "rescrutiny" && (
             <ReScrutinyPanel
               applicationId={selectedApp.id}
@@ -238,43 +255,32 @@ function OfficerWorkspaceContent() {
             />
           )}
 
-          {/* Tab 6: Statutory Deadlines */}
+          {/* Tab 6: Deadlines */}
           {activeTab === "deadlines" && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 text-xs">
-              <h4 className="font-bold text-slate-900 text-sm">Deterministic AICTE Statutory Clocks</h4>
+            <div className="bg-paper border border-neutral rounded-sm p-6 space-y-4 shadow-xs text-xs">
+              <h4 className="font-heading font-bold text-ink text-sm">Statutory Appeal Windows</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {deadlines.map((dl: any, idx: number) => (
-                  <div key={idx} className="border p-4 rounded-xl space-y-2 bg-slate-50/50">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">{dl.clause_number}</span>
-                      <span className="font-mono text-[10px] bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded">
-                        {dl.duration_days} {dl.duration_type}
-                      </span>
-                    </div>
-                    <p className="text-slate-700">{dl.description}</p>
-                    <div className="bg-white p-2.5 rounded border font-mono text-[11px] text-slate-600 space-y-0.5">
-                      <div>Trigger: <strong>{dl.trigger_event}</strong></div>
-                      <div>Calculation: {dl.calculation_trace?.join(" → ")}</div>
-                      <div>Days Remaining: <strong className="text-slate-900">{dl.days_remaining} days</strong></div>
-                    </div>
-                  </div>
-                ))}
+                <div className="p-4 bg-surface rounded-sm border border-neutral space-y-1">
+                  <span className="font-heading font-bold text-ink">Clause 1.11 Appeal Clock</span>
+                  <p className="text-ink-secondary text-[11px]">7 Calendar Days from Deficiency Letter generation.</p>
+                </div>
+                <div className="p-4 bg-surface rounded-sm border border-neutral space-y-1">
+                  <span className="font-heading font-bold text-ink">Clause 2.24 SAC Appeal Clock</span>
+                  <p className="text-ink-secondary text-[11px]">7 Calendar Days from Executive Committee Decision publication.</p>
+                </div>
               </div>
             </div>
           )}
 
           {/* Tab 7: Applicable Clauses */}
           {activeTab === "clauses" && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 text-xs">
-              <h4 className="font-bold text-slate-900 text-sm">Governing APH 2024–27 Provisions</h4>
+            <div className="bg-paper border border-neutral rounded-sm p-6 space-y-4 shadow-xs text-xs">
+              <h4 className="font-heading font-bold text-ink text-sm">Governing APH Clauses</h4>
               <div className="space-y-3">
                 {clauses.map((c) => (
-                  <div key={c.id} className="border p-4 rounded-xl space-y-1.5 bg-slate-50/50">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-blue-800">{c.clause_number}</span>
-                      <span className="font-bold text-slate-900">{c.title}</span>
-                    </div>
-                    <p className="text-slate-700 leading-relaxed">{c.content}</p>
+                  <div key={c.id} className="p-3 bg-surface rounded-sm border border-neutral space-y-1">
+                    <span className="font-mono font-bold text-flow-core">Clause {c.clause_number}: {c.title}</span>
+                    <p className="text-ink-secondary text-[11px] leading-relaxed">{c.content}</p>
                   </div>
                 ))}
               </div>
@@ -288,7 +294,7 @@ function OfficerWorkspaceContent() {
 
 export default function OfficerWorkspace() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-slate-500 font-mono">Loading Officer Dossier...</div>}>
+    <Suspense fallback={<div className="p-8 text-xs font-mono text-ink-secondary">Loading Regional Officer Workspace...</div>}>
       <OfficerWorkspaceContent />
     </Suspense>
   );

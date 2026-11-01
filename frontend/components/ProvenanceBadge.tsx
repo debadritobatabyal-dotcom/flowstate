@@ -1,5 +1,6 @@
 import React from "react";
 import { ShieldCheck, Cpu, Sparkles, AlertCircle } from "lucide-react";
+import { ContourBadgeSwatch } from "@/components/ContourGraphic";
 
 interface ProvenanceBadgeProps {
   type: string;
@@ -15,37 +16,43 @@ export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({
   const norm = (type || "").toUpperCase();
 
   let label = "RULE-COMPUTED";
-  let bg = "bg-blue-50 text-blue-800 border-blue-200";
+  let variant: "flow" | "shallow" | "deep" = "flow";
+  let badgeStyle = "bg-paper text-ink border-neutral";
   let Icon = Cpu;
 
   if (norm.includes("VERIFIED")) {
     label = "HUMAN-VERIFIED";
-    bg = "bg-emerald-50 text-emerald-800 border-emerald-200";
+    variant = "flow";
+    badgeStyle = "bg-emerald-50 text-emerald-900 border-emerald-200";
     Icon = ShieldCheck;
   } else if (norm.includes("SUGGESTED")) {
     label = "AI-SUGGESTED";
-    bg = "bg-purple-50 text-purple-800 border-purple-200";
+    variant = "deep";
+    badgeStyle = "bg-purple-50 text-purple-900 border-purple-200";
     Icon = Sparkles;
   } else if (norm.includes("SIMULATED")) {
     label = "SIMULATED";
-    bg = "bg-amber-50 text-amber-800 border-amber-200";
+    variant = "shallow";
+    badgeStyle = "bg-amber-50 text-amber-900 border-amber-200";
     Icon = AlertCircle;
   } else if (norm.includes("UNVERIFIED")) {
     label = "UNVERIFIED-SYNTHETIC";
-    bg = "bg-rose-50 text-rose-800 border-rose-200";
+    variant = "shallow";
+    badgeStyle = "bg-rose-50 text-rose-900 border-rose-200";
     Icon = AlertCircle;
   }
 
-  const px = size === "sm" ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-xs";
+  const px = size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs";
   const iconSize = size === "sm" ? 11 : 13;
 
   return (
     <span
-      className={`inline-flex items-center gap-1 font-mono font-semibold uppercase tracking-wider rounded border ${bg} ${px}`}
+      className={`inline-flex items-center gap-1.5 font-mono font-semibold uppercase tracking-wider rounded-full border shadow-2xs ${badgeStyle} ${px}`}
       title={`Data Provenance: ${label}`}
     >
-      {showIcon && <Icon size={iconSize} className="shrink-0" />}
-      {label}
+      <ContourBadgeSwatch variant={variant} />
+      {showIcon && <Icon size={iconSize} className="shrink-0 opacity-80" />}
+      <span>{label}</span>
     </span>
   );
 };

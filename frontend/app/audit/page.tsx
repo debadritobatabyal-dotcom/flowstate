@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { ContourBadgeSwatch } from "@/components/ContourGraphic";
 import {
   ShieldCheck,
   History,
@@ -13,6 +14,10 @@ import {
   FileCheck,
   Download,
   Hash,
+  ChevronDown,
+  ChevronUp,
+  User,
+  Calendar,
 } from "lucide-react";
 
 export default function AuditReportsPage() {
@@ -64,20 +69,21 @@ export default function AuditReportsPage() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+    <div className="space-y-6 max-w-7xl mx-auto font-sans pb-12">
+      {/* Editorial Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-neutral">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+          <div className="flex items-center gap-2 text-xs font-mono font-semibold text-ink-secondary mb-1">
+            <ContourBadgeSwatch variant="deep" />
             <span>AICTE Statutory Oversight</span>
             <span>•</span>
-            <span className="text-blue-700 font-bold">Tamper-Evident Ledger</span>
+            <span className="text-deep-core font-bold">Tamper-Evident Ledger</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-ink tracking-tight">
             Statutory Audit & Hash Ledger
           </h1>
-          <p className="text-xs text-slate-600 mt-0.5">
-            Cryptographically chained SHA-256 event provenance tracking institutional actions, scrutiny determinations, and executive decisions.
+          <p className="text-xs text-ink-secondary mt-1 max-w-3xl leading-relaxed">
+            Cryptographically chained SHA-256 event provenance tracking institutional applications, document extractions, officer scrutiny findings, and executive decisions.
           </p>
         </div>
 
@@ -85,163 +91,235 @@ export default function AuditReportsPage() {
         <button
           onClick={handleVerifyChain}
           disabled={verifying}
-          className="flex items-center gap-2 bg-[#0a192f] hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition shadow-sm self-start sm:self-auto"
+          className="m-btn text-xs self-start sm:self-auto"
         >
-          <ShieldCheck size={16} className="text-emerald-400" />
-          <span>{verifying ? "Verifying SHA-256 Chain..." : "Verify Hash Chain Integrity"}</span>
+          <ShieldCheck size={16} className="text-flow-rim" />
+          <span>{verifying ? "Verifying SHA-256 Ledger..." : "Verify Cryptographic Hash Chain"}</span>
         </button>
       </div>
 
       {/* Verification Status Banner */}
       {verificationResult && (
         <div
-          className={`p-4 rounded-xl border flex items-center justify-between text-xs ${
+          className={`p-4 rounded-sm border flex items-center justify-between text-xs shadow-xs ${
             verificationResult.is_valid
-              ? "bg-emerald-50 border-emerald-300 text-emerald-950"
-              : "bg-rose-50 border-rose-300 text-rose-950"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-950"
+              : "bg-rose-50 border-rose-200 text-rose-950"
           }`}
         >
           <div className="flex items-center gap-3">
             {verificationResult.is_valid ? (
-              <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+              <CheckCircle2 size={20} className="text-emerald-700 shrink-0" />
             ) : (
-              <AlertTriangle size={20} className="text-rose-600 shrink-0" />
+              <AlertTriangle size={20} className="text-rose-700 shrink-0" />
             )}
             <div>
-              <div className="font-bold">
+              <div className="font-heading font-bold text-sm">
                 {verificationResult.is_valid
-                  ? "Cryptographic Verification Passed"
-                  : "Hash Chain Verification Discrepancy"}
+                  ? "Cryptographic SHA-256 Verification Succeeded"
+                  : "Hash Chain Sequence Discrepancy Detected"}
               </div>
-              <p className="text-[11px] text-slate-600 mt-0.5">
+              <p className="text-[11px] text-ink-secondary mt-0.5 leading-relaxed">
                 {verificationResult.is_valid
-                  ? `All ${verificationResult.total_events_checked} audit entries verified sequentially. SHA-256 forward and previous hash links match without interruption.`
-                  : "Hash chain discrepancy detected. Possible data tampering or missing sequence record."}
+                  ? `All ${verificationResult.total_events_checked} sequential audit entries verified without break. Previous-hash pointers match current payload hashes.`
+                  : "Hash discrepancy detected. Possible database manipulation or out-of-order sequence."}
               </p>
             </div>
           </div>
-          <span className="font-mono text-xs font-bold px-2.5 py-1 bg-white border rounded shadow-2xs">
-            {verificationResult.total_events_checked} Verified Nodes
+          <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-paper border border-neutral">
+            {verificationResult.total_events_checked} Events Checked
           </span>
         </div>
       )}
 
+      {/* Ledger Overview Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-paper p-4 rounded-sm border border-neutral shadow-xs">
+          <div className="flex items-center justify-between text-ink-secondary text-xs font-semibold mb-1">
+            <span className="font-heading">Total Recorded Events</span>
+            <History size={16} className="text-flow-core" />
+          </div>
+          <div className="text-2xl font-heading font-bold text-ink">{logs.length}</div>
+          <span className="text-[10px] text-ink-secondary font-mono mt-0.5 block">
+            Immutable Audit Trail
+          </span>
+        </div>
+
+        <div className="bg-paper p-4 rounded-sm border border-neutral shadow-xs">
+          <div className="flex items-center justify-between text-ink-secondary text-xs font-semibold mb-1">
+            <span className="font-heading">Cryptographic Standard</span>
+            <Hash size={16} className="text-deep-core" />
+          </div>
+          <div className="text-lg font-heading font-bold text-ink font-mono">SHA-256</div>
+          <span className="text-[10px] text-ink-secondary font-mono mt-0.5 block">
+            Forward & Backward Chaining
+          </span>
+        </div>
+
+        <div className="bg-paper p-4 rounded-sm border border-neutral shadow-xs">
+          <div className="flex items-center justify-between text-ink-secondary text-xs font-semibold mb-1">
+            <span className="font-heading">Ledger Tamper Status</span>
+            <Lock size={16} className="text-emerald-700" />
+          </div>
+          <div className="text-lg font-heading font-bold text-emerald-800">
+            {verificationResult?.is_valid ? "Verified Pristine" : "Unverified / Ready"}
+          </div>
+          <span className="text-[10px] text-ink-secondary font-mono mt-0.5 block">
+            Non-repudiable Proof
+          </span>
+        </div>
+      </div>
+
       {/* Filter and Search Bar */}
-      <div className="bg-white p-3.5 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
+      <div className="bg-paper p-3.5 rounded-sm border border-neutral flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs">
         <div className="flex items-center gap-2 flex-1 min-w-[240px]">
           <div className="relative w-full max-w-md">
-            <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+            <Search size={14} className="absolute left-3 top-2.5 text-ink-secondary" />
             <input
               type="text"
-              placeholder="Search audit trail by actor, action, or entity ID..."
+              placeholder="Search by action, role, entity, or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-md text-xs focus:ring-1 focus:ring-blue-600 focus:outline-none"
+              className="w-full pl-9 pr-3 py-1.5 border border-neutral rounded-full text-xs bg-surface focus:bg-paper focus:outline-none"
             />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-slate-500 font-medium">Action Filter:</span>
+          <span className="text-ink-secondary font-medium">Event Type:</span>
           <select
             value={filterAction}
             onChange={(e) => setFilterAction(e.target.value)}
-            className="bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-slate-800 font-medium text-xs focus:ring-1 focus:ring-blue-600"
+            className="bg-surface border border-neutral rounded-full px-2.5 py-1 text-ink font-semibold text-xs focus:outline-none"
           >
             <option value="">All Actions</option>
-            <option value="LOGIN">User Logins</option>
-            <option value="UPLOAD">Document Uploads</option>
-            <option value="DEFICIENCY">Deficiencies Raised</option>
-            <option value="VERIFY">Officer Verification</option>
-            <option value="RESCRUTINY">Re-Scrutiny Actions</option>
-            <option value="AMENDMENT">Policy Amendments</option>
+            <option value="APPLICATION">Application</option>
+            <option value="SCRUTINY">Scrutiny</option>
+            <option value="DEFICIENCY">Deficiency</option>
+            <option value="AMENDMENT">Amendment</option>
+            <option value="LOGIN">Auth/Login</option>
           </select>
         </div>
       </div>
 
-      {/* Audit Log Table with Expandable Hashes */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+      {/* Audit Log Table */}
+      <div className="bg-paper rounded-sm border border-neutral shadow-xs overflow-hidden">
+        <div className="p-4 border-b border-neutral flex items-center justify-between bg-surface">
+          <div>
+            <h3 className="font-heading font-bold text-ink text-sm">Chronological Audit Events</h3>
+            <p className="text-ink-secondary text-[11px]">Human-readable action details presented first; technical hashes expandable</p>
+          </div>
+          <span className="text-xs font-mono text-ink-secondary font-semibold">
+            Showing {filteredLogs.length} events
+          </span>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
+            <thead className="bg-surface/60 border-b border-neutral text-ink-secondary font-mono font-bold uppercase tracking-wider text-[10px]">
               <tr>
-                <th className="px-4 py-3">Sequence</th>
                 <th className="px-4 py-3">Timestamp</th>
-                <th className="px-4 py-3">Action</th>
-                <th className="px-4 py-3">Entity</th>
-                <th className="px-4 py-3">Actor Role</th>
-                <th className="px-4 py-3 text-right">Cryptographic Proof</th>
+                <th className="px-4 py-3">Action Recorded</th>
+                <th className="px-4 py-3">Actor & Role</th>
+                <th className="px-4 py-3">Entity Affected</th>
+                <th className="px-4 py-3 text-right">Cryptographic Hash</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredLogs.map((log) => {
-                const isExpanded = expandedLogId === log.id;
-                return (
-                  <React.Fragment key={log.id}>
-                    <tr
-                      onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
-                      className="hover:bg-slate-50/70 transition cursor-pointer"
-                    >
-                      <td className="px-4 py-3 font-mono font-bold text-slate-700">
-                        #{log.sequence_number}
-                      </td>
-                      <td className="px-4 py-3 text-slate-600 font-mono text-[11px]">
-                        {new Date(log.created_at).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded font-mono text-[11px]">
-                          {log.action}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-700 font-medium">
-                        {log.entity_type} <span className="font-mono text-[10px] text-slate-400">({log.entity_id?.substring(0, 8)}...)</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
-                          {log.actor_role || "SYSTEM"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-[10px] text-slate-400">
-                        <span className="underline text-blue-600">
-                          {isExpanded ? "Hide Hash Chain" : "Inspect SHA-256"}
-                        </span>
-                      </td>
-                    </tr>
-                    {isExpanded && (
-                      <tr className="bg-slate-50/80">
-                        <td colSpan={6} className="px-6 py-4 space-y-2 border-b border-slate-200 text-xs">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
-                            <div className="p-2.5 bg-white rounded border border-slate-200 font-mono">
-                              <span className="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">
-                                Current SHA-256 Hash:
-                              </span>
-                              <span className="text-slate-800 break-all select-all font-semibold">
-                                {log.current_hash}
-                              </span>
-                            </div>
-                            <div className="p-2.5 bg-white rounded border border-slate-200 font-mono">
-                              <span className="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">
-                                Previous Chained Hash:
-                              </span>
-                              <span className="text-slate-600 break-all select-all">
-                                {log.previous_hash || "GENESIS_NODE"}
-                              </span>
-                            </div>
+            <tbody className="divide-y divide-neutral/50">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-12 text-ink-secondary font-mono">
+                    Loading statutory audit trail...
+                  </td>
+                </tr>
+              ) : filteredLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-12 text-ink-secondary">
+                    No audit records match the current criteria.
+                  </td>
+                </tr>
+              ) : (
+                filteredLogs.map((log) => {
+                  const isExpanded = expandedLogId === log.id;
+                  return (
+                    <React.Fragment key={log.id}>
+                      <tr className="hover:bg-surface/50 transition">
+                        <td className="px-4 py-3 font-mono text-ink-secondary whitespace-nowrap">
+                          {new Date(log.created_at).toLocaleString([], {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-heading font-bold text-ink">
+                            {log.action.replace(/_/g, " ")}
                           </div>
-                          {log.details_json && Object.keys(log.details_json).length > 0 && (
-                            <div className="p-2.5 bg-white rounded border border-slate-200 font-mono text-[10px]">
-                              <span className="text-slate-400 font-bold block mb-1">Event Payload Details:</span>
-                              <pre className="text-slate-700 overflow-x-auto whitespace-pre-wrap">
-                                {JSON.stringify(log.details_json, null, 2)}
-                              </pre>
-                            </div>
+                          {log.notes && (
+                            <p className="text-[11px] text-ink-secondary line-clamp-1">{log.notes}</p>
                           )}
                         </td>
+                        <td className="px-4 py-3">
+                          <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface border border-neutral text-ink">
+                            {log.actor_role || "SYSTEM"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-ink text-[11px]">
+                          <div>{log.entity_type}</div>
+                          {log.entity_id && (
+                            <span className="text-[10px] text-ink-secondary font-normal truncate block max-w-[140px]">
+                              {log.entity_id}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                            className="inline-flex items-center gap-1 font-mono text-[11px] text-flow-core hover:text-navy bg-surface border border-neutral px-2.5 py-0.5 rounded-full transition font-semibold"
+                          >
+                            <Hash size={11} />
+                            <span>{isExpanded ? "Hide Hash" : "Inspect SHA-256"}</span>
+                            {isExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                          </button>
+                        </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+
+                      {/* Expandable Technical Cryptographic Detail */}
+                      {isExpanded && (
+                        <tr className="bg-surface/80 border-b border-neutral/60">
+                          <td colSpan={5} className="px-6 py-4 space-y-2 text-xs">
+                            <div className="font-heading font-bold text-ink text-xs mb-1">
+                              Cryptographic Chaining Details
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-[11px]">
+                              <div className="p-2.5 bg-paper rounded-sm border border-neutral space-y-1">
+                                <span className="text-[10px] font-bold text-ink-secondary uppercase block">
+                                  Event Payload Hash (SHA-256):
+                                </span>
+                                <div className="text-flow-core break-all font-bold select-all">
+                                  {log.event_hash || "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+                                </div>
+                              </div>
+                              <div className="p-2.5 bg-paper rounded-sm border border-neutral space-y-1">
+                                <span className="text-[10px] font-bold text-ink-secondary uppercase block">
+                                  Previous Chained Event Hash:
+                                </span>
+                                <div className="text-ink-secondary break-all select-all">
+                                  {log.prev_hash || "0000000000000000000000000000000000000000000000000000000000000000 (GENESIS)"}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

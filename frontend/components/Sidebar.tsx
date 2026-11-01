@@ -1,130 +1,157 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import {
-  LayoutDashboard,
-  FileText,
-  SearchCheck,
-  BookOpenCheck,
-  History,
+  LayoutGrid,
+  Building2,
+  CheckSquare,
+  Compass,
+  AlertTriangle,
+  ShieldCheck,
+  Landmark,
+  Sliders,
   PlayCircle,
-  Settings,
-  Scale,
-  ShieldAlert,
+  ChevronLeft,
+  ChevronRight,
+  Terminal,
 } from "lucide-react";
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const { currentRole } = useAppStore();
+  const [collapsed, setCollapsed] = useState(false);
 
-  // 5 Canonical Sections + Admin
+  // Exact 8 Navigation Sections from User Mockup (Image 2)
   const navItems = [
-    { label: "1. Dashboard", href: "/", icon: LayoutDashboard, description: "National KPIs & Pendency" },
-    { label: "2. Applications", href: "/applications", icon: FileText, description: "Table 2.3 Routes & Intake" },
-    { label: "3. Scrutiny & Compliance", href: "/scrutiny", icon: SearchCheck, description: "Evidence & Re-Scrutiny" },
-    { label: "4. Regulatory Intelligence", href: "/regulatory", icon: BookOpenCheck, description: "Clause Registry & Impact" },
-    { label: "5. Reports & Audit", href: "/audit", icon: History, description: "SHA-256 Hash Ledger" },
+    { label: "Executive Overview", href: "/", icon: LayoutGrid, count: null },
+    { label: "Application Registry", href: "/applications", icon: Building2, count: null },
+    { label: "Scrutiny & Compliance", href: "/scrutiny", icon: CheckSquare, count: null },
+    { label: "Regulatory Intelligence", href: "/regulatory", icon: Compass, count: null },
+    { label: "Alert Center", href: "/status", icon: AlertTriangle, count: "7 REQ" },
+    { label: "Reports & Audit Trail", href: "/audit", icon: ShieldCheck, count: null },
+    { label: "Institution Portal", href: "/institution", icon: Landmark, count: null },
+    { label: "System Administration", href: "/admin", icon: Sliders, count: null },
   ];
 
-  const isSystemAdmin = currentRole.role === "SYSTEM_ADMIN" || currentRole.role === "SUPER_ADMIN";
-
   return (
-    <aside className="w-64 border-r border-slate-200 bg-white min-h-[calc(100vh-6rem)] p-4 flex flex-col justify-between shrink-0 font-sans">
-      <div className="space-y-6">
-        {/* Signature Walkthrough CTA */}
-        <Link
-          href="/demo"
-          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-bold transition border ${
-            pathname === "/demo"
-              ? "bg-amber-500 text-slate-950 border-amber-600 shadow"
-              : "bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100"
-          }`}
-        >
-          <PlayCircle size={17} className="text-amber-700 shrink-0" />
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span>Signature Demo</span>
-              <span className="text-[9px] uppercase px-1 py-0.2 bg-amber-200 text-amber-950 rounded font-black">
-                4 Stages
+    <aside
+      className={`hidden lg:flex flex-col justify-between shrink-0 bg-paper border-r border-neutral transition-all duration-300 min-h-[calc(100vh-5rem)] ${
+        collapsed ? "w-20 p-3" : "w-64 p-3.5"
+      }`}
+    >
+      <div className="space-y-4">
+        {/* Telemetry Grid Header Badge */}
+        {!collapsed ? (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold tracking-wider text-ink-secondary">
+                <Terminal size={12} className="text-flow-core" />
+                <span>TELEMETRY GRID</span>
+              </div>
+              <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-surface border border-neutral text-ink-secondary">
+                NODE: IND-HQ
               </span>
             </div>
-            <p className="text-[10px] font-normal text-amber-800">Meridian Institute Case Study</p>
+            <div className="h-px bg-neutral/60 w-full" />
           </div>
+        ) : (
+          <div className="flex justify-center pb-2 border-b border-neutral/60">
+            <span className="text-[9px] font-mono font-bold text-flow-core">HQ</span>
+          </div>
+        )}
+
+        {/* Meridian Interactive Walkthrough Button */}
+        <Link
+          href="/demo"
+          className={`group flex items-center gap-2.5 rounded-lg transition border ${
+            pathname === "/demo"
+              ? "bg-[#10141a] text-white border-black shadow-sm"
+              : "bg-surface text-ink border-neutral/70 hover:border-shallow-core"
+          } ${collapsed ? "justify-center p-2.5" : "px-3 py-2"}`}
+          title="Meridian Case Study (4 Stages)"
+        >
+          <PlayCircle
+            size={16}
+            className={`shrink-0 ${pathname === "/demo" ? "text-shallow-rim" : "text-shallow-core group-hover:scale-105 transition"}`}
+          />
+          {!collapsed && (
+            <div className="overflow-hidden flex-1 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold font-heading block leading-tight">Interactive Tour</span>
+                <span className="text-[10px] text-ink-secondary truncate block">Meridian 4 Stages</span>
+              </div>
+              <span className="text-[9px] uppercase px-1.5 py-0.5 bg-shallow-rim/30 text-shallow-core rounded-full font-bold">
+                Tour
+              </span>
+            </div>
+          )}
         </Link>
 
-        {/* 5 Canonical Navigation Sections */}
-        <div>
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 block mb-2">
-            Core Modules
-          </span>
-          <nav className="space-y-1">
-            {navItems.map((item) => {
-              const active = pathname === item.href;
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex flex-col px-3 py-2 rounded-lg transition ${
-                    active
-                      ? "bg-[#0a192f] text-white shadow-sm"
-                      : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+        {/* Primary Navigation Items matching Image 2 */}
+        <nav className="space-y-1">
+          {navItems.map((item) => {
+            const active = pathname === item.href;
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`relative group flex items-center rounded-lg text-xs font-medium transition ${
+                  active
+                    ? "bg-[#10141a] text-white shadow-xs font-semibold"
+                    : "text-ink-secondary hover:text-ink hover:bg-surface"
+                } ${collapsed ? "justify-center p-2.5" : "px-3 py-2 gap-3"}`}
+                title={collapsed ? item.label : undefined}
+              >
+                <Icon
+                  size={17}
+                  className={`shrink-0 transition ${
+                    active ? "text-white" : "text-ink-secondary group-hover:text-ink"
                   }`}
-                >
-                  <div className="flex items-center gap-2.5 text-xs font-bold">
-                    <Icon size={16} className={active ? "text-blue-400" : "text-slate-500"} />
-                    <span>{item.label}</span>
+                />
+
+                {!collapsed && (
+                  <div className="overflow-hidden flex-1 flex items-center justify-between">
+                    <span className="truncate">{item.label}</span>
+                    {item.count && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+                        {item.count}
+                      </span>
+                    )}
                   </div>
-                  <span className={`text-[10px] ml-6 font-normal ${active ? "text-slate-300" : "text-slate-400"}`}>
-                    {item.description}
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Administration Section (Protected) */}
-        <div>
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 block mb-2">
-            Administration
-          </span>
-          <Link
-            href="/admin"
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition ${
-              pathname === "/admin"
-                ? "bg-slate-800 text-white"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-            }`}
-          >
-            <Settings size={15} className="text-slate-500" />
-            <span>Settings & Diagnostics</span>
-            {!isSystemAdmin && (
-              <span className="ml-auto text-[9px] bg-slate-100 text-slate-500 px-1 py-0.5 rounded font-mono">
-                Admin
-              </span>
-            )}
-          </Link>
-        </div>
-
-        {/* Regulatory Governance Capsule */}
-        <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1">
-          <div className="flex items-center gap-1.5 text-slate-900 font-bold">
-            <Scale size={14} className="text-blue-700 shrink-0" />
-            <span>AICTE APH 2024–27</span>
-          </div>
-          <p className="text-slate-500 text-[10px] leading-relaxed">
-            Statutory framework governing procedural scrutiny (1.8), targeted re-scrutiny (1.8g), EVC (1.9), and separate appeal clocks (1.11 & 2.24).
-          </p>
-        </div>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
 
-      {/* Footer Info */}
-      <div className="pt-3 border-t border-slate-100 text-[10px] text-slate-400 space-y-0.5">
-        <p className="font-bold text-slate-600">FLOWSTATE v2.0 • AICTE</p>
-        <p>Government Administrative Intelligence</p>
+      {/* Collapse Button & Footer */}
+      <div className="pt-3 border-t border-neutral/60 space-y-2">
+        <button
+          type="button"
+          onClick={() => setCollapsed(!collapsed)}
+          className={`w-full flex items-center gap-2 py-1.5 px-2 rounded-lg text-ink-secondary hover:text-ink hover:bg-surface text-xs transition ${
+            collapsed ? "justify-center" : "justify-between"
+          }`}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {!collapsed && <span className="text-[11px] font-medium">Collapse View</span>}
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
+
+        {!collapsed && (
+          <div className="px-1 text-[10px] text-ink-secondary font-mono flex items-center justify-between">
+            <span>SEC-ID: IND-APH-26</span>
+            <span className="flex items-center gap-1 text-emerald-600 font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              ONLINE
+            </span>
+          </div>
+        )}
       </div>
     </aside>
   );

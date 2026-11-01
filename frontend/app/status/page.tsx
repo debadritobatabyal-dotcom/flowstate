@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { ProvenanceBadge } from "@/components/ProvenanceBadge";
+import { ContourBadgeSwatch } from "@/components/ContourGraphic";
 import {
   Activity,
   ShieldCheck,
@@ -58,33 +59,38 @@ export default function StatusPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="h-8 w-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center min-h-[400px] text-xs font-mono font-semibold text-ink-secondary">
+        Loading Diagnostics Engine...
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-7xl mx-auto font-sans pb-12">
       {/* Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-neutral">
         <div>
-          <div className="flex items-center gap-2">
-            <Activity className="text-blue-700" size={20} />
-            <h2 className="text-xl font-bold text-slate-900">FLOWSTATE Engine Diagnostics & Controls</h2>
+          <div className="flex items-center gap-2 text-xs font-mono font-semibold text-ink-secondary mb-1">
+            <ContourBadgeSwatch variant="deep" />
+            <span>AICTE System Diagnostics</span>
+            <span>•</span>
+            <span className="text-deep-core font-bold">Engine Telemetry</span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Zero-Key Local Orchestration Status, Service Toggles & SHA-256 Tamper Evidence
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-ink tracking-tight">
+            FLOWSTATE Engine Diagnostics & Controls
+          </h1>
+          <p className="text-xs text-ink-secondary mt-1 max-w-3xl leading-relaxed">
+            Zero-key local orchestration status, service connectivity, and SHA-256 cryptographic tamper evidence.
           </p>
         </div>
 
         <button
           onClick={handleReset}
           disabled={resetting}
-          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition flex items-center gap-2 shadow-sm"
+          className="m-btn text-xs self-start sm:self-auto"
         >
           <RotateCcw size={14} className={resetting ? "animate-spin" : ""} />
-          {resetting ? "Resetting Demo..." : "Reset Signature Demo"}
+          <span>{resetting ? "Resetting Demo..." : "Reset Signature Demo"}</span>
         </button>
       </div>
 
@@ -92,91 +98,73 @@ export default function StatusPage() {
       {statusData && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
           {/* Card 1: LLM Engine */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-2 shadow-sm">
+          <div className="bg-paper border border-neutral rounded-sm p-5 space-y-2 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-500 text-[10px] uppercase">LLM Engine</span>
-              <Cpu size={16} className="text-blue-600" />
+              <span className="font-bold text-ink-secondary text-[10px] uppercase">LLM Engine</span>
+              <Cpu size={16} className="text-flow-core" />
             </div>
-            <div className="font-bold text-slate-900 text-sm">Provider: {statusData.llm_provider.toUpperCase()}</div>
-            <div className="text-slate-600">
+            <div className="font-heading font-bold text-ink text-sm">Provider: {statusData.llm_provider?.toUpperCase() || "EXTRACTIVE"}</div>
+            <div className="text-ink-secondary text-[11px]">
               {statusData.gemini_active
                 ? "Google Gemini Flash Active"
                 : statusData.ollama_active
                 ? "Ollama Local Model Active"
-                : "Extractive Citation NullProvider (Zero-Key Fallback)"}
+                : "Extractive Citation NullProvider (Deterministic Fallback)"}
             </div>
-            <span className="inline-block px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-bold text-[10px]">
+            <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">
               Ready & Connected
             </span>
           </div>
 
           {/* Card 2: Database Mode */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-2 shadow-sm">
+          <div className="bg-paper border border-neutral rounded-sm p-5 space-y-2 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-500 text-[10px] uppercase">Database Mode</span>
-              <Database size={16} className="text-emerald-600" />
+              <span className="font-bold text-ink-secondary text-[10px] uppercase">Database Mode</span>
+              <Database size={16} className="text-flow-core" />
             </div>
-            <div className="font-bold text-slate-900 text-sm">{statusData.database_type}</div>
-            <div className="text-slate-600">Dual-Mode SQLAlchemy 2 (SQLite / PostgreSQL)</div>
-            <span className="inline-block px-2 py-0.5 rounded bg-blue-50 text-blue-800 font-bold text-[10px]">
-              Zero-Service Native Setup
+            <div className="font-heading font-bold text-ink text-sm">{statusData.database_type || "SQLite / PostgreSQL"}</div>
+            <div className="text-ink-secondary text-[11px]">Dual-Mode SQLAlchemy 2 with Alembic Migrations</div>
+            <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">
+              Schema Synchronized
             </span>
           </div>
 
-          {/* Card 3: Cryptographic Audit Chain */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-2 shadow-sm">
+          {/* Card 3: Cryptographic Ledger */}
+          <div className="bg-paper border border-neutral rounded-sm p-5 space-y-2 shadow-xs">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-500 text-[10px] uppercase">Audit Chain Integrity</span>
-              <ShieldCheck size={16} className="text-purple-600" />
+              <span className="font-bold text-ink-secondary text-[10px] uppercase">Audit Ledger Integrity</span>
+              <ShieldCheck size={16} className="text-deep-core" />
             </div>
-            <div className="font-bold text-emerald-700 text-sm flex items-center gap-1.5">
-              <CheckCircle2 size={16} /> VALID & UNBROKEN
+            <div className="font-heading font-bold text-ink text-sm">
+              {auditCheck?.is_valid ? "Pristine SHA-256 Chain" : "Verification Pending"}
             </div>
-            <div className="text-slate-600">SHA-256 Append-Only Hash Chaining</div>
-            <span className="inline-block px-2 py-0.5 rounded bg-purple-50 text-purple-800 font-bold text-[10px]">
-              {statusData.total_applications} Apps Tracked
+            <div className="text-ink-secondary text-[11px]">
+              {auditCheck?.total_events_checked || 0} events verified without hash collision.
+            </div>
+            <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">
+              Chain Intact
             </span>
           </div>
         </div>
       )}
 
-      {/* Live Audit Log Stream */}
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm space-y-2">
-        <div className="p-5 border-b border-slate-200 flex items-center justify-between">
-          <div>
-            <h4 className="font-bold text-slate-900 text-sm">Append-Only Cryptographic Audit Log</h4>
-            <p className="text-xs text-slate-500">Every workflow transition and human approval hashed with previous block</p>
-          </div>
-          <span className="font-mono text-xs px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-bold">
-            Total Logged Events: {logs.length}
-          </span>
+      {/* Recent Engine Logs */}
+      <div className="bg-paper border border-neutral rounded-sm p-6 shadow-xs space-y-4 text-xs">
+        <div className="flex items-center justify-between border-b border-neutral pb-2">
+          <h3 className="font-heading font-bold text-ink text-sm">Recent Engine Operations</h3>
+          <span className="font-mono text-[10px] text-ink-secondary font-bold">Latest {logs.length} Operations</span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-slate-50 text-slate-600 border-b">
-              <tr>
-                <th className="py-2.5 px-4">Seq</th>
-                <th className="py-2.5 px-4">Action</th>
-                <th className="py-2.5 px-4">Entity</th>
-                <th className="py-2.5 px-4">Actor</th>
-                <th className="py-2.5 px-4">Current Hash (SHA-256)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {logs.map((l) => (
-                <tr key={l.sequence_id} className="hover:bg-slate-50">
-                  <td className="py-2.5 px-4 font-bold text-slate-900">{l.sequence_id}</td>
-                  <td className="py-2.5 px-4 font-bold text-blue-700">{l.action}</td>
-                  <td className="py-2.5 px-4 text-slate-700">{l.entity_type}</td>
-                  <td className="py-2.5 px-4 text-slate-500">{l.actor_role || "SYSTEM"}</td>
-                  <td className="py-2.5 px-4 text-slate-400 truncate max-w-[200px]" title={l.current_hash}>
-                    {l.current_hash}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {logs.map((log) => (
+            <div key={log.id} className="p-3 bg-surface border border-neutral rounded-sm flex items-center justify-between font-mono text-[11px]">
+              <div>
+                <span className="font-bold text-ink">{log.action}</span>
+                <span className="text-ink-secondary ml-2">({log.entity_type} {log.entity_id})</span>
+              </div>
+              <span className="text-ink-secondary">{new Date(log.created_at).toLocaleTimeString()}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -1,7 +1,18 @@
 "use client";
 import React, { useState } from "react";
 import { api } from "@/lib/api";
-import { Lock, ShieldCheck, AlertCircle, PlusCircle, CheckCircle, XCircle, ArrowRight } from "lucide-react";
+import { ContourBadgeSwatch } from "@/components/ContourGraphic";
+import {
+  Lock,
+  ShieldCheck,
+  AlertCircle,
+  PlusCircle,
+  CheckCircle,
+  XCircle,
+  ArrowRight,
+  FileCheck,
+  Info,
+} from "lucide-react";
 
 interface ReScrutinyItem {
   id: string;
@@ -97,20 +108,22 @@ export const ReScrutinyPanel: React.FC<Props> = ({
 
   if (!checklistData || !checklistData.checklist) {
     return (
-      <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-3">
-        <Lock className="mx-auto text-blue-600" size={32} />
-        <h4 className="font-bold text-slate-900 text-base">Locked Targeted Re-Scrutiny (APH Clause 1.8(g))</h4>
-        <p className="text-xs text-slate-500 max-w-lg mx-auto">
-          Re-scrutiny is strictly limited to deficiencies previously identified by the Scrutiny Committee.
-          Generate the locked checklist to begin evaluation of resubmitted evidence.
+      <div className="bg-paper border border-neutral rounded-sm p-8 text-center space-y-3 font-sans shadow-xs">
+        <div className="w-12 h-12 rounded-full bg-surface border border-neutral text-flow-core flex items-center justify-center mx-auto">
+          <Lock size={24} />
+        </div>
+        <h4 className="font-heading font-bold text-ink text-base">Locked Targeted Re-Scrutiny (Clause 1.8(g))</h4>
+        <p className="text-xs text-ink-secondary max-w-lg mx-auto leading-relaxed">
+          Statutory re-scrutiny is strictly limited to deficiencies previously identified by the Scrutiny Committee.
+          Generate the locked checklist to commence formal evaluation of resubmitted evidence.
         </p>
         {canVerify && (
           <button
             disabled={generating}
             onClick={handleGenerate}
-            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg transition shadow-sm"
+            className="m-btn text-xs"
           >
-            {generating ? "Locking Scope..." : "Generate Locked Re-Scrutiny Checklist"}
+            {generating ? "Locking Statutory Scope..." : "Generate Locked Re-Scrutiny Checklist"}
           </button>
         )}
       </div>
@@ -120,22 +133,22 @@ export const ReScrutinyPanel: React.FC<Props> = ({
   const { checklist, items, out_of_scope_findings } = checklistData;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header Banner: Regulatory Invariant */}
-      <div className="bg-slate-900 text-white rounded-xl p-4 flex items-center justify-between shadow-sm">
+      <div className="bg-navy text-paper rounded-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs border border-navy-light">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
-            <Lock size={20} />
+          <div className="p-2 bg-navy-light text-flow-rim rounded-sm border border-neutral/20 shrink-0">
+            <Lock size={18} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h4 className="font-bold text-sm">Targeted Re-Scrutiny Checklist (Round {checklist.round_number})</h4>
-              <span className="font-mono text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded uppercase font-semibold">
-                LOCKED SCOPE
+              <h4 className="font-heading font-bold text-sm">Targeted Re-Scrutiny Checklist (Round {checklist.round_number})</h4>
+              <span className="font-mono text-[9px] bg-flow-core text-paper px-2 py-0.2 rounded-full uppercase font-bold tracking-wider">
+                LOCKED SCOPE 1.8(g)
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Enforcing AICTE APH Clause 1.8(g): Re-scrutiny verifies <strong>ONLY</strong> previously identified deficiencies.
+            <p className="text-xs text-neutral/70 mt-0.5">
+              Strict statutory enforcement: Re-scrutiny verifies <strong>ONLY</strong> previously recorded deficiencies.
             </p>
           </div>
         </div>
@@ -143,52 +156,52 @@ export const ReScrutinyPanel: React.FC<Props> = ({
         {canVerify && (
           <button
             onClick={() => setShowOutModal(true)}
-            className="text-xs font-semibold px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md border border-slate-700 transition flex items-center gap-1.5"
+            className="text-xs font-semibold px-3 py-1.5 bg-navy-light hover:bg-neutral/20 text-paper rounded-full border border-neutral/30 transition flex items-center gap-1.5 self-start sm:self-auto"
           >
-            <PlusCircle size={14} className="text-amber-400" />
-            Report Out-of-Scope Issue
+            <PlusCircle size={13} className="text-shallow-rim" />
+            <span>Report Out-of-Scope Issue</span>
           </button>
         )}
       </div>
 
       {/* Main Targeted Items (Original Deficiencies ONLY) */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-5 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-            Mandatory Verification Scope ({items.length} items)
+      <div className="bg-paper border border-neutral rounded-sm overflow-hidden shadow-xs">
+        <div className="px-5 py-3 border-b border-neutral bg-surface flex items-center justify-between">
+          <span className="text-xs font-heading font-bold text-ink uppercase tracking-wider">
+            Mandatory Locked Verification Scope ({items.length} items)
           </span>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-ink-secondary font-mono font-semibold">
             {items.filter((i) => i.verification_status === "RESOLVED").length} of {items.length} Resolved
           </span>
         </div>
 
-        <div className="divide-y divide-slate-100">
-          {items.map((item, idx) => (
-            <div key={item.id} className="p-5 space-y-3 hover:bg-slate-50/50 transition">
-              <div className="flex items-start justify-between gap-4">
+        <div className="divide-y divide-neutral/50">
+          {items.map((item) => (
+            <div key={item.id} className="p-5 space-y-3 hover:bg-surface/40 transition">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                    <span className="font-mono text-xs font-bold text-ink bg-surface border border-neutral px-2 py-0.5 rounded-full">
                       {item.deficiency_number}
                     </span>
-                    <span className="font-mono text-xs text-blue-700 font-semibold">{item.aph_clause_number}</span>
+                    <span className="font-mono text-xs text-flow-core font-bold">{item.aph_clause_number}</span>
                   </div>
-                  <p className="text-xs font-medium text-slate-800 leading-relaxed">
+                  <p className="text-xs text-ink leading-relaxed">
                     <strong>Original Deficiency:</strong> {item.original_finding_summary}
                   </p>
                 </div>
 
                 <div>
                   {item.verification_status === "RESOLVED" ? (
-                    <span className="inline-flex items-center gap-1 text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full text-xs">
-                      <CheckCircle size={14} /> Resolved
+                    <span className="inline-flex items-center gap-1 text-emerald-900 font-bold bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[11px] font-mono">
+                      <CheckCircle size={13} /> Resolved
                     </span>
                   ) : item.verification_status === "UNRESOLVED" ? (
-                    <span className="inline-flex items-center gap-1 text-rose-800 font-bold bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full text-xs">
-                      <XCircle size={14} /> Unresolved
+                    <span className="inline-flex items-center gap-1 text-rose-900 font-bold bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full text-[11px] font-mono">
+                      <XCircle size={13} /> Unresolved
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-amber-800 font-bold bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full text-xs">
+                    <span className="inline-flex items-center gap-1 text-shallow-core font-bold bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full text-[11px] font-mono">
                       Pending Review
                     </span>
                   )}
@@ -196,25 +209,25 @@ export const ReScrutinyPanel: React.FC<Props> = ({
               </div>
 
               {/* Evidence Comparison: Original vs Resubmitted */}
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="bg-surface border border-neutral rounded-sm p-3.5 text-xs grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <span className="font-bold text-slate-500 text-[10px] uppercase">Original Finding</span>
-                  <p className="text-slate-700 italic">{item.original_finding_summary}</p>
+                  <span className="font-mono font-bold text-ink-secondary text-[10px] uppercase">Original Scrutiny Observation</span>
+                  <p className="text-ink italic leading-relaxed">{item.original_finding_summary}</p>
                 </div>
-                <div className="space-y-1 border-t md:border-t-0 md:border-l md:pl-3 border-slate-200">
-                  <span className="font-bold text-emerald-800 text-[10px] uppercase">Resubmitted Compliance Evidence</span>
+                <div className="space-y-1 border-t md:border-t-0 md:border-l md:pl-3 border-neutral">
+                  <span className="font-mono font-bold text-emerald-800 text-[10px] uppercase">Resubmitted Compliance Evidence</span>
                   {item.resubmission_notes ? (
                     <div>
-                      <p className="text-slate-800 font-medium">{item.resubmission_notes}</p>
+                      <p className="text-ink font-medium leading-relaxed">{item.resubmission_notes}</p>
                       {item.resubmitted_document_name && (
-                        <div className="mt-1 text-[11px] text-slate-500 flex items-center gap-1">
-                          <span>File: <strong>{item.resubmitted_document_name}</strong></span>
+                        <div className="mt-1 text-[11px] text-ink-secondary flex items-center gap-1">
+                          <span>File: <strong className="text-ink">{item.resubmitted_document_name}</strong></span>
                           <span>(Page {item.resubmitted_page_number || 1})</span>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <p className="text-amber-700 italic">No resubmission uploaded yet by institution.</p>
+                    <p className="text-shallow-core italic">No resubmission uploaded yet by institution.</p>
                   )}
                 </div>
               </div>
@@ -224,9 +237,9 @@ export const ReScrutinyPanel: React.FC<Props> = ({
                 <div className="flex items-center justify-end gap-2 pt-1">
                   <button
                     onClick={() => setVerifyingId(item.id)}
-                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-bold transition"
+                    className="m-btn text-xs py-1 px-3"
                   >
-                    Enter Re-Scrutiny Verdict
+                    Enter Re-Scrutiny Determination
                   </button>
                 </div>
               )}
@@ -236,120 +249,134 @@ export const ReScrutinyPanel: React.FC<Props> = ({
       </div>
 
       {/* Out-of-Scope Review Panel (Strictly Isolated under APH 1.8(g)) */}
-      <div className="bg-amber-50/50 border border-amber-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-5 py-3 border-b border-amber-200 bg-amber-100/60 flex items-center justify-between">
+      <div className="bg-paper border border-shallow-core/30 rounded-sm overflow-hidden shadow-xs">
+        <div className="px-5 py-3 border-b border-shallow-core/20 bg-shallow-rim/20 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <div className="flex items-center gap-2">
-            <AlertCircle size={16} className="text-amber-800" />
-            <span className="text-xs font-bold text-amber-900 uppercase tracking-wider">
-              Out-of-Scope Review Panel (Isolated Findings)
+            <AlertCircle size={16} className="text-shallow-core" />
+            <span className="text-xs font-heading font-bold text-ink uppercase tracking-wider">
+              Out-of-Scope Review Panel (Isolated Observations)
             </span>
           </div>
-          <span className="text-[11px] text-amber-800 font-medium">
+          <span className="text-[11px] text-shallow-core font-mono font-semibold">
             Protected under Clause 1.8(g) — Kept outside re-scrutiny checklist
           </span>
         </div>
 
-        <div className="p-4 space-y-3">
-          {out_of_scope_findings.length === 0 ? (
-            <p className="text-xs text-amber-800/80 italic text-center py-2">
-              No out-of-scope issues flagged. Re-scrutiny integrity fully preserved.
+        <div className="p-4 space-y-2">
+          {(!out_of_scope_findings || out_of_scope_findings.length === 0) ? (
+            <p className="text-xs text-ink-secondary italic text-center py-4 font-mono">
+              No out-of-scope issues logged. Re-scrutiny remains 100% focused on original checklist.
             </p>
           ) : (
-            out_of_scope_findings.map((f) => (
-              <div key={f.id} className="bg-white border border-amber-200 p-3 rounded-lg text-xs space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900">{f.observation}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold">
-                    {f.status}
+            out_of_scope_findings.map((oof) => (
+              <div key={oof.id} className="p-3 bg-surface border border-neutral rounded-sm text-xs flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-1.5 font-bold text-ink">
+                    <span className="font-mono text-flow-core">{oof.clause_number || "Clause 1.9"}</span>
+                    <span>•</span>
+                    <span>{oof.observation}</span>
+                  </div>
+                  <span className="text-[10px] text-ink-secondary font-mono mt-0.5 block">
+                    Recorded on {new Date(oof.created_at).toLocaleDateString()} — Transferred to Post-Approval/EVC file
                   </span>
                 </div>
-                <div className="text-slate-500 text-[11px] flex items-center justify-between">
-                  <span>Clause Reference: {f.clause_number}</span>
-                  <span>Recorded: {new Date(f.created_at).toLocaleDateString()}</span>
-                </div>
+                <span className="text-[10px] font-mono bg-paper border border-neutral px-2 py-0.5 rounded-full font-bold text-ink-secondary">
+                  ISOLATED
+                </span>
               </div>
             ))
           )}
         </div>
       </div>
 
-      {/* Decision Modal */}
+      {/* Verification Modal */}
       {verifyingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-200">
-            <h4 className="font-bold text-slate-900 text-base">Re-Scrutiny Verification Verdict</h4>
-            <p className="text-xs text-slate-500">
-              Confirm whether the resubmitted evidence fully complies with the original statutory deficiency.
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-xs p-4">
+          <div className="bg-paper rounded-sm shadow-sheet max-w-md w-full p-6 space-y-4 border border-neutral">
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">Committee Remarks</label>
+              <h4 className="font-heading font-bold text-ink text-base">Re-Scrutiny Verification Verdict</h4>
+              <p className="text-xs text-ink-secondary mt-0.5">Determine compliance under Clause 1.8(g)</p>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-ink block mb-1">Officer Re-Scrutiny Remarks</label>
               <textarea
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Enter re-scrutiny committee notes..."
-                className="w-full text-xs p-2.5 border rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-900"
-                rows={2}
+                placeholder="Enter statutory remarks regarding resubmitted evidence..."
+                className="w-full text-xs p-2.5 border border-neutral rounded-sm bg-surface focus:bg-paper focus:outline-none focus:ring-1 focus:ring-flow-core"
+                rows={3}
               />
             </div>
-            <div className="flex items-center justify-end gap-2 pt-2 border-t">
-              <button onClick={() => setVerifyingId(null)} className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded">
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral">
+              <button
+                onClick={() => setVerifyingId(null)}
+                className="m-btn-outline text-xs py-1 px-3"
+              >
                 Cancel
               </button>
               <button
                 onClick={() => handleVerifyItem("UNRESOLVED")}
-                className="px-3 py-1.5 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white rounded transition shadow-sm"
+                className="px-3 py-1.5 text-xs font-bold bg-rose-700 hover:bg-rose-800 text-paper rounded-full transition"
               >
-                Mark Unresolved
+                Deficiency Persists (Unresolved)
               </button>
               <button
                 onClick={() => handleVerifyItem("RESOLVED")}
-                className="px-4 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded transition shadow-sm"
+                className="px-3 py-1.5 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-paper rounded-full transition"
               >
-                Mark Resolved & Complied
+                Mark Resolved & Compliant
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Add Out of Scope Modal */}
+      {/* Out-of-Scope Report Modal */}
       {showOutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-xs p-4">
+          <div className="bg-paper rounded-sm shadow-sheet max-w-md w-full p-6 space-y-4 border border-neutral">
             <div>
-              <h4 className="font-bold text-slate-900 text-base">Report Out-of-Scope Observation</h4>
-              <p className="text-xs text-amber-700 font-medium mt-0.5">
-                Notice: Under APH Clause 1.8(g), this will NOT expand the re-scrutiny checklist. It will be recorded separately for Executive Committee consideration.
+              <h4 className="font-heading font-bold text-ink text-base">Report Out-of-Scope Statutory Issue</h4>
+              <p className="text-xs text-ink-secondary mt-0.5">
+                Will be isolated from current re-scrutiny checklist to prevent procedural violation of Clause 1.8(g).
               </p>
             </div>
+
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">Clause Reference</label>
+              <label className="text-xs font-bold text-ink block mb-1">Associated APH Clause</label>
               <input
                 type="text"
                 value={outClause}
                 onChange={(e) => setOutClause(e.target.value)}
-                className="w-full text-xs p-2 border rounded"
+                className="w-full text-xs p-2 border border-neutral rounded-sm bg-surface font-mono"
               />
             </div>
+
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">Observation</label>
+              <label className="text-xs font-bold text-ink block mb-1">New Observation</label>
               <textarea
                 value={outObservation}
                 onChange={(e) => setOutObservation(e.target.value)}
-                placeholder="Describe new observation noticed during session..."
-                className="w-full text-xs p-2.5 border rounded-lg focus:outline-none focus:ring-1 focus:ring-slate-900"
+                placeholder="Describe new finding observed outside original checklist..."
+                className="w-full text-xs p-2.5 border border-neutral rounded-sm bg-surface"
                 rows={3}
               />
             </div>
-            <div className="flex items-center justify-end gap-2 pt-2 border-t">
-              <button onClick={() => setShowOutModal(false)} className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded">
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral">
+              <button
+                onClick={() => setShowOutModal(false)}
+                className="m-btn-outline text-xs py-1 px-3"
+              >
                 Cancel
               </button>
               <button
                 onClick={handleAddOutOfScope}
-                className="px-4 py-1.5 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded transition"
+                className="m-btn text-xs py-1 px-3"
               >
-                Isolate in Out-of-Scope Panel
+                Log Out-of-Scope Record
               </button>
             </div>
           </div>

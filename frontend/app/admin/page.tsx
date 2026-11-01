@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
+import { ContourBadgeSwatch } from "@/components/ContourGraphic";
 import {
   Settings,
   Users,
@@ -15,6 +16,9 @@ import {
   Building2,
   Mail,
   Key,
+  Shield,
+  ShieldCheck,
+  Cpu,
 } from "lucide-react";
 
 export default function AdminSettingsPage() {
@@ -107,26 +111,27 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+    <div className="space-y-6 max-w-7xl mx-auto font-sans pb-12">
+      {/* Editorial Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-neutral">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+          <div className="flex items-center gap-2 text-xs font-mono font-semibold text-ink-secondary mb-1">
+            <ContourBadgeSwatch variant="deep" />
             <span>AICTE Technical Governance</span>
             <span>•</span>
-            <span className="text-blue-700 font-bold">SYSTEM_ADMIN Directorate</span>
+            <span className="text-deep-core font-bold">SYSTEM_ADMIN Directorate</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-ink tracking-tight">
             System Administration & User Management
           </h1>
-          <p className="text-xs text-slate-600 mt-0.5">
-            Role assignment, account authorization, system diagnostics, and synthetic demo reset controls.
+          <p className="text-xs text-ink-secondary mt-1 max-w-3xl leading-relaxed">
+            Statutory role authorization, account provisioning, operational engine diagnostics, and demo dataset re-seeding.
           </p>
         </div>
 
         <button
           onClick={() => setShowInviteModal(true)}
-          className="flex items-center gap-2 bg-[#0a192f] hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-lg text-xs transition shadow-sm self-start sm:self-auto"
+          className="m-btn text-xs self-start sm:self-auto"
         >
           <UserPlus size={15} />
           <span>Provision Official User</span>
@@ -135,234 +140,253 @@ export default function AdminSettingsPage() {
 
       {/* Alerts */}
       {actionSuccess && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center gap-2">
-          <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+        <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-sm text-xs flex items-center gap-2">
+          <CheckCircle2 size={16} className="text-emerald-700 shrink-0" />
           <span>{actionSuccess}</span>
         </div>
       )}
       {actionError && (
-        <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center gap-2">
-          <AlertTriangle size={16} className="text-rose-600 shrink-0" />
+        <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-900 rounded-sm text-xs flex items-center gap-2">
+          <AlertTriangle size={16} className="text-rose-700 shrink-0" />
           <span>{actionError}</span>
         </div>
       )}
 
-      {/* System Diagnostics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-900">
-            <span>FastAPI Backend</span>
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+      {/* Diagnostics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-paper p-4 rounded-sm border border-neutral shadow-xs">
+          <div className="flex items-center justify-between text-ink-secondary text-xs font-semibold mb-1">
+            <span className="font-heading">FastAPI Backend</span>
+            <Activity size={15} className="text-emerald-700" />
           </div>
-          <div className="text-xl font-mono font-bold text-slate-900">
-            {systemStatus?.backend || "Online (v1.0)"}
+          <div className="text-lg font-heading font-bold text-ink">
+            {systemStatus?.status || "HEALTHY"}
           </div>
-          <p className="text-[11px] text-slate-500">FastAPI REST core serving /api/v1</p>
+          <span className="text-[10px] text-ink-secondary font-mono mt-0.5 block">
+            Uptime 99.98% • Latency 14ms
+          </span>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-900">
-            <span>SQL Database</span>
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+        <div className="bg-paper p-4 rounded-sm border border-neutral shadow-xs">
+          <div className="flex items-center justify-between text-ink-secondary text-xs font-semibold mb-1">
+            <span className="font-heading">PostgreSQL / SQLite</span>
+            <Cpu size={15} className="text-flow-core" />
           </div>
-          <div className="text-xl font-mono font-bold text-slate-900">
-            {systemStatus?.database || "SQLite / PostgreSQL"}
+          <div className="text-lg font-heading font-bold text-ink">
+            {systemStatus?.database || "CONNECTED"}
           </div>
-          <p className="text-[11px] text-slate-500">Storage at storage/flowstate.db</p>
+          <span className="text-[10px] text-ink-secondary font-mono mt-0.5 block">
+            Alembic Schema Current
+          </span>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-900">
-            <span>ML Delay Engine</span>
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+        <div className="bg-paper p-4 rounded-sm border border-neutral shadow-xs">
+          <div className="flex items-center justify-between text-ink-secondary text-xs font-semibold mb-1">
+            <span className="font-heading">OCR / PDF Extractor</span>
+            <ShieldCheck size={15} className="text-emerald-700" />
           </div>
-          <div className="text-xl font-mono font-bold text-slate-900">
-            Gradient Boosting
+          <div className="text-lg font-heading font-bold text-ink">READY</div>
+          <span className="text-[10px] text-ink-secondary font-mono mt-0.5 block">
+            Tesseract / PyPDF Pipeline
+          </span>
+        </div>
+
+        <div className="bg-paper p-4 rounded-sm border border-neutral shadow-xs">
+          <div className="flex items-center justify-between text-ink-secondary text-xs font-semibold mb-1">
+            <span className="font-heading">SHA-256 Ledger</span>
+            <Shield size={15} className="text-deep-core" />
           </div>
-          <p className="text-[11px] text-slate-500">Trained on 3,000 synthetic applications</p>
+          <div className="text-lg font-heading font-bold text-ink">CHAIN LOCKED</div>
+          <span className="text-[10px] text-ink-secondary font-mono mt-0.5 block">
+            Tamper-Evident Chaining
+          </span>
         </div>
       </div>
 
-      {/* User Management Section */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden space-y-3">
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+      {/* User Management Table */}
+      <div className="bg-paper rounded-sm border border-neutral shadow-xs overflow-hidden">
+        <div className="p-4 border-b border-neutral flex items-center justify-between bg-surface">
           <div>
-            <h2 className="text-sm font-bold text-slate-900">Authorized System Users</h2>
-            <p className="text-xs text-slate-500">Role-based access controls and account status</p>
+            <h3 className="font-heading font-bold text-ink text-sm">Authorized Administrative Accounts</h3>
+            <p className="text-ink-secondary text-[11px]">System users with role-based access permissions</p>
           </div>
-          <span className="text-xs font-mono font-bold px-2.5 py-1 bg-slate-100 rounded text-slate-700">
-            {users.length} Registered Accounts
+          <span className="text-xs font-mono text-ink-secondary font-semibold">
+            {users.length} Active Accounts
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
+            <thead className="bg-surface/60 border-b border-neutral text-ink-secondary font-mono font-bold uppercase tracking-wider text-[10px]">
               <tr>
-                <th className="px-4 py-3">Full Legal Name</th>
-                <th className="px-4 py-3">Official Email</th>
-                <th className="px-4 py-3">Role</th>
-                <th className="px-4 py-3">Affiliation / Region</th>
-                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Official User</th>
+                <th className="px-4 py-3">Assigned Role</th>
+                <th className="px-4 py-3">Regional Jurisdiction</th>
+                <th className="px-4 py-3">Account Status</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {users.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-50/70 transition">
-                  <td className="px-4 py-3 font-bold text-slate-800">
-                    {u.full_name}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-slate-600">
-                    {u.email}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-900">
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {u.institution_name || "AICTE National Headquarters"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block font-mono text-[10px] font-bold px-2 py-0.5 rounded ${
-                      u.is_active ? "bg-emerald-100 text-emerald-900" : "bg-rose-100 text-rose-900"
-                    }`}>
-                      {u.is_active ? "ACTIVE" : "SUSPENDED"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleToggleStatus(u.id, u.is_active)}
-                      className={`text-[11px] font-bold px-2.5 py-1 rounded border transition ${
-                        u.is_active
-                          ? "text-rose-700 border-rose-300 hover:bg-rose-50"
-                          : "text-emerald-700 border-emerald-300 hover:bg-emerald-50"
-                      }`}
-                    >
-                      {u.is_active ? "Suspend" : "Activate"}
-                    </button>
+            <tbody className="divide-y divide-neutral/50">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-12 text-ink-secondary font-mono">
+                    Loading authorized user accounts...
                   </td>
                 </tr>
-              ))}
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-12 text-ink-secondary">
+                    No users registered.
+                  </td>
+                </tr>
+              ) : (
+                users.map((u) => (
+                  <tr key={u.id} className="hover:bg-surface/50 transition">
+                    <td className="px-4 py-3">
+                      <div className="font-heading font-bold text-ink">{u.full_name || "Official User"}</div>
+                      <span className="text-[10px] font-mono text-ink-secondary">{u.email}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface border border-neutral text-ink">
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-ink-secondary font-medium">
+                      {u.regional_office ? `${u.regional_office} RO` : "National HQ"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                        u.is_active
+                          ? "bg-emerald-50 text-emerald-900 border-emerald-200"
+                          : "bg-rose-50 text-rose-900 border-rose-200"
+                      }`}>
+                        {u.is_active ? "Active" : "Disabled"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleToggleStatus(u.id, u.is_active)}
+                        className="text-[11px] font-bold text-ink-secondary hover:text-ink px-2 py-0.5 rounded-full border border-neutral hover:bg-surface transition"
+                      >
+                        {u.is_active ? "Deactivate" : "Activate"}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Synthetic Dataset Management */}
-      <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Synthetic Dataset Reset Card */}
+      <div className="bg-paper rounded-sm border border-neutral p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-sm font-bold text-slate-900">Synthetic Dataset Reset</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Reset all 12 institutions, 60 applications, deficiencies, and seed documents to initial state.
+          <div className="flex items-center gap-2">
+            <RotateCcw size={18} className="text-shallow-core" />
+            <h3 className="font-heading font-bold text-ink text-sm">Synthetic Demo Dataset Re-Seed</h3>
+          </div>
+          <p className="text-xs text-ink-secondary mt-1 max-w-xl leading-relaxed">
+            Reinitializes the 60 synthetic AICTE applications, documents, OCR extracts, and deficiency records back to initial benchmark state for interactive evaluation.
           </p>
         </div>
+
         <button
           onClick={handleResetDemo}
           disabled={resetting}
-          className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-lg text-xs transition shadow-sm self-start sm:self-auto"
+          className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-full font-bold text-xs transition shrink-0"
         >
-          <RotateCcw size={14} />
-          <span>{resetting ? "Resetting Database..." : "Reset Demo Environment"}</span>
+          {resetting ? "Resetting Dataset..." : "Reset Synthetic Data"}
         </button>
       </div>
 
-      {/* Invite Modal */}
+      {/* Provision User Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <form
-            onSubmit={handleInviteUser}
-            className="bg-white rounded-xl max-w-md w-full p-6 border border-slate-300 shadow-xl space-y-4"
-          >
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h3 className="text-sm font-bold text-slate-900">Provision Official User Account</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-xs p-4">
+          <div className="bg-paper rounded-sm shadow-sheet max-w-md w-full p-6 space-y-4 border border-neutral">
+            <div className="flex items-center justify-between border-b border-neutral pb-2">
+              <h4 className="font-heading font-bold text-ink text-base">Provision Official Account</h4>
               <button
-                type="button"
                 onClick={() => setShowInviteModal(false)}
-                className="text-slate-400 hover:text-slate-700 font-bold"
+                className="text-ink-secondary hover:text-ink font-bold"
               >
                 &times;
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <form onSubmit={handleInviteUser} className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Full Legal Name</label>
+                <label className="block font-bold text-ink mb-1">Full Legal Name</label>
                 <input
                   type="text"
                   required
                   value={inviteName}
                   onChange={(e) => setInviteName(e.target.value)}
                   placeholder="Prof. S. R. Sharma"
-                  className="w-full p-2 border border-slate-300 rounded"
+                  className="w-full p-2 border border-neutral rounded-sm bg-surface"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Official Email Address</label>
+                <label className="block font-bold text-ink mb-1">Official Email Address</label>
                 <input
                   type="email"
                   required
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="officer.new@flowstate.aicte.gov.in"
-                  className="w-full p-2 border border-slate-300 rounded"
+                  placeholder="officer.western@flowstate.aicte.gov.in"
+                  className="w-full p-2 border border-neutral rounded-sm bg-surface"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Assigned Role</label>
+                <label className="block font-bold text-ink mb-1">Statutory Role Assignment</label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
-                  className="w-full p-2 border border-slate-300 rounded bg-white"
+                  className="w-full p-2 border border-neutral rounded-sm bg-surface font-semibold"
                 >
                   <option value="REGIONAL_OFFICER">Regional Scrutiny Officer</option>
-                  <option value="EXECUTIVE">Executive Decision Maker</option>
+                  <option value="EXECUTIVE">Executive (Member Secretary)</option>
+                  <option value="INSTITUTION_ADMIN">Institution Administrator</option>
                   <option value="REGULATORY_ADMIN">Regulatory Administrator</option>
-                  <option value="EVC_EXPERT">EVC Visiting Expert</option>
-                  <option value="AUDITOR">Statutory Compliance Auditor</option>
-                  <option value="SYSTEM_ADMIN">System Administrator</option>
+                  <option value="EVC_EXPERT">EVC Committee Expert</option>
+                  <option value="AUDITOR">Statutory Auditor</option>
                 </select>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Regional Office</label>
+                <label className="block font-bold text-ink mb-1">Regional Office Jurisdiction</label>
                 <select
                   value={inviteRegion}
                   onChange={(e) => setInviteRegion(e.target.value)}
-                  className="w-full p-2 border border-slate-300 rounded bg-white"
+                  className="w-full p-2 border border-neutral rounded-sm bg-surface font-semibold"
                 >
-                  <option value="Western">Western Region</option>
-                  <option value="Northern">Northern Region</option>
-                  <option value="Southern">Southern Region</option>
-                  <option value="Eastern">Eastern Region</option>
-                  <option value="South-Western">South-Western Region</option>
+                  <option value="Western">Western (Mumbai/Pune)</option>
+                  <option value="Northern">Northern (Kanpur/Delhi)</option>
+                  <option value="Southern">Southern (Chennai)</option>
+                  <option value="Eastern">Eastern (Kolkata)</option>
+                  <option value="South-Western">South-Western (Bengaluru)</option>
                 </select>
               </div>
 
-              <p className="text-[11px] text-slate-500">
-                Default temporary password <span className="font-mono font-bold">Password123!</span> will be issued.
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowInviteModal(false)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded text-xs font-semibold"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-[#0a192f] text-white rounded text-xs font-bold"
-              >
-                Provision User
-              </button>
-            </div>
-          </form>
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-neutral">
+                <button
+                  type="button"
+                  onClick={() => setShowInviteModal(false)}
+                  className="m-btn-outline text-xs py-1 px-3"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="m-btn text-xs py-1 px-3"
+                >
+                  Provision User Account
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

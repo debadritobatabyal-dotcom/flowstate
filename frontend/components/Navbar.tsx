@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppStore, ROLE_PRESETS } from "@/lib/store";
 import { api } from "@/lib/api";
+import { NotificationCenter } from "@/components/NotificationCenter";
+import { ContourBadgeSwatch } from "@/components/ContourGraphic";
 import {
   Shield,
   UserCheck,
@@ -12,13 +14,20 @@ import {
   Activity,
   LogOut,
   Settings,
-  ChevronDown,
+  Search,
+  Bell,
+  Menu,
+  X,
+  ExternalLink,
 } from "lucide-react";
 
 export const Navbar: React.FC = () => {
   const router = useRouter();
   const { currentRole, setCurrentRole } = useAppStore();
   const [systemOk, setSystemOk] = useState(true);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState("");
 
   const handleRoleChange = async (presetRole: string) => {
     const selected = ROLE_PRESETS.find((r) => r.role === presetRole) || ROLE_PRESETS[1];
@@ -26,6 +35,9 @@ export const Navbar: React.FC = () => {
     try {
       const res = await api.demoLogin(selected.role);
       api.setToken(res.access_token);
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
     } catch {
       // Fallback
     }
@@ -42,93 +54,214 @@ export const Navbar: React.FC = () => {
     router.push("/login");
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (globalSearch.trim()) {
+      router.push(`/applications?search=${encodeURIComponent(globalSearch.trim())}`);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-slate-200">
-      {/* Tri-color Accent Strip */}
-      <div className="h-1 w-full bg-gradient-to-r from-orange-500 via-white to-emerald-600" />
+    <>
+      <header className="sticky top-0 z-40 bg-paper border-b border-neutral shadow-xs">
+        {/* National Tri-Color Statutory Accent Strip */}
+        <div className="h-0.5 w-full bg-gradient-to-r from-shallow-core via-paper to-flow-core opacity-90" />
 
-      {/* Mandatory Prototype Disclaimer Banner */}
-      <div className="bg-amber-600 text-white px-4 py-1 text-xs font-semibold flex items-center justify-between tracking-wide shadow-sm">
-        <div className="flex items-center gap-2 mx-auto">
-          <AlertTriangle size={14} className="shrink-0 text-amber-200" />
-          <span>DEMO ENVIRONMENT — Synthetic data. No live AICTE databases or APIs are connected.</span>
-        </div>
-        <Link
-          href="/demo"
-          className="hidden md:inline-flex items-center gap-1.5 bg-slate-900 text-white px-3 py-0.5 rounded text-[11px] font-bold hover:bg-slate-800 transition shadow"
-        >
-          <PlayCircle size={13} className="text-amber-400" />
-          <span>Interactive Demo (4 Stages)</span>
-        </Link>
-      </div>
-
-      {/* Main Government Header */}
-      <div className="px-6 h-16 flex items-center justify-between bg-[#0a192f] text-white">
-        {/* Brand & Emblem Title */}
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="h-10 w-10 rounded-lg bg-blue-600 border border-blue-400 text-white flex items-center justify-center font-bold font-mono text-lg shadow">
-              FS
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-black text-lg tracking-tight text-white group-hover:text-blue-300 transition">
-                  FLOWSTATE
-                </span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-900/60 text-blue-200 border border-blue-700/50">
-                  AICTE Case Intelligence
-                </span>
-              </div>
-              <span className="text-[10px] text-slate-300 font-medium tracking-wide block">
-                All India Council for Technical Education • Statutory Process Oversight
-              </span>
-            </div>
+        {/* Mandatory Prototype Disclaimer Banner */}
+        <div className="bg-navy-deep text-paper/90 px-4 py-1 text-[11px] font-medium flex items-center justify-between tracking-wide border-b border-navy-light/40">
+          <div className="flex items-center gap-2 mx-auto">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-shallow-rim animate-pulse" />
+            <span className="font-semibold text-paper">DEMO ENVIRONMENT</span>
+            <span className="text-neutral/80 hidden sm:inline">— Synthetic AICTE approval data. Statutory APH 2024–2027 logic active.</span>
+          </div>
+          <Link
+            href="/demo"
+            className="hidden lg:inline-flex items-center gap-1.5 bg-flow-core/40 hover:bg-flow-core text-paper px-2.5 py-0.5 rounded-full text-[10px] font-bold transition"
+          >
+            <ContourBadgeSwatch variant="shallow" />
+            <span>Meridian Walkthrough (4 Stages)</span>
           </Link>
         </div>
 
-        {/* Right Action Bar */}
-        <div className="flex items-center gap-3">
-          {/* Quick Role Switcher */}
-          <div className="flex items-center gap-2 bg-slate-900/80 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs">
-            <UserCheck size={14} className="text-blue-400" />
-            <span className="text-slate-300 font-medium hidden sm:inline">Role:</span>
-            <select
-              value={currentRole.role}
-              onChange={(e) => handleRoleChange(e.target.value)}
-              className="bg-slate-800 text-white border border-slate-600 rounded px-2 py-0.5 font-semibold text-xs focus:outline-none focus:ring-1 focus:ring-blue-400"
+        {/* Main Administrative Header Bar */}
+        <div className="px-4 sm:px-6 h-14 flex items-center justify-between bg-paper text-ink gap-3">
+          {/* Left: Statutory Breadcrumb & Context */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Mobile Menu Toggle Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-1.5 rounded text-ink-secondary hover:text-ink hover:bg-surface transition"
+              aria-label="Toggle Navigation Drawer"
             >
-              {ROLE_PRESETS.map((p) => (
-                <option key={p.role} value={p.role}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+
+            {/* Breadcrumb matching Image 2 */}
+            <div className="flex items-center gap-2 text-xs">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface border border-neutral text-ink font-semibold text-[11px]">
+                <span>🏛</span>
+                <span>AICTE Administrative Intelligence</span>
+              </span>
+              <span className="text-neutral-400 hidden sm:inline">›</span>
+              <span className="text-ink-secondary hidden sm:inline text-[11px] font-medium">AICTE Central</span>
+              <span className="text-neutral-400 hidden md:inline">›</span>
+              <span className="text-ink font-semibold hidden md:inline text-[11px]">Approval Workflow AY 2026-27</span>
+            </div>
           </div>
 
-          {/* Engine Status Diagnostic Pill */}
-          <Link
-            href="/admin"
-            className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-white border border-slate-700 px-2.5 py-1.5 rounded-lg hover:bg-slate-800 transition"
-            title="System Diagnostics & User Management"
-          >
-            <span
-              className={`h-2 w-2 rounded-full ${systemOk ? "bg-emerald-400 animate-pulse" : "bg-rose-400"}`}
-            />
-            <span className="hidden md:inline">Admin</span>
-          </Link>
+          {/* Center: Global Search with ⌘K */}
+          <form onSubmit={handleSearchSubmit} className="hidden lg:flex flex-1 max-w-sm mx-2">
+            <div className="relative w-full">
+              <Search size={13} className="absolute left-3 top-2.5 text-ink-secondary pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search application, institute..."
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+                className="w-full pl-8 pr-9 py-1 text-xs bg-surface border border-neutral rounded-md focus:bg-paper focus:border-flow-core focus:ring-1 focus:ring-flow-rim focus:outline-none transition"
+              />
+              <kbd className="absolute right-2.5 top-1.5 text-[9px] font-mono px-1.5 py-0.5 rounded bg-neutral/40 border border-neutral/70 text-ink-secondary">
+                ⌘K
+              </kbd>
+            </div>
+          </form>
 
-          {/* Sign Out / Switch User */}
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-600 px-2.5 py-1.5 rounded-lg transition"
-            title="Log out or switch account"
-          >
-            <LogOut size={13} />
-            <span className="hidden sm:inline">Exit</span>
-          </button>
+          {/* Right Action Bar */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* AY 2026-27 Cycle Indicator */}
+            <span className="hidden xl:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-mono font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+              AY 2026–27
+            </span>
+
+            {/* Quick Role Toggle Buttons matching Image 2 */}
+            <div className="hidden md:flex items-center gap-1 bg-surface p-0.5 rounded-lg border border-neutral text-[11px]">
+              {[
+                { role: "EXECUTIVE_DIRECTOR", label: "Executive Official" },
+                { role: "SCRUTINY_OFFICER", label: "Regional Scrutiny" },
+                { role: "SYSTEM_ADMIN", label: "Regulatory Admin" },
+              ].map((r) => {
+                const isActive = currentRole.role === r.role;
+                return (
+                  <button
+                    key={r.role}
+                    type="button"
+                    onClick={() => handleRoleChange(r.role)}
+                    className={`px-2.5 py-1 rounded font-medium transition ${
+                      isActive
+                        ? "bg-paper text-ink shadow-xs font-semibold border border-neutral/80"
+                        : "text-ink-secondary hover:text-ink hover:bg-paper/50"
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Notification Drawer Trigger */}
+            <button
+              type="button"
+              onClick={() => setNotificationOpen(true)}
+              className="relative p-1.5 rounded-lg text-ink-secondary hover:text-ink hover:bg-surface border border-neutral/60 transition"
+              title="Alert Center"
+              aria-label="Notifications"
+            >
+              <Bell size={15} />
+              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center">
+                7
+              </span>
+            </button>
+
+            {/* User Profile Avatar */}
+            <div
+              className="w-7 h-7 rounded-full bg-navy text-paper flex items-center justify-center text-[10px] font-bold font-heading cursor-pointer shadow-xs border border-neutral"
+              title={`Logged in as ${currentRole.label}`}
+            >
+              {currentRole.label.charAt(0)}
+            </div>
+
+            {/* Sign Out Button */}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="text-ink-secondary hover:text-ink p-1.5 rounded-lg hover:bg-surface transition"
+              title="Sign Out"
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
         </div>
-      </div>
-    </header>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-neutral bg-paper p-4 space-y-3">
+            <form onSubmit={handleSearchSubmit} className="mb-3">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-2.5 text-ink-secondary" />
+                <input
+                  type="text"
+                  placeholder="Search application or clause..."
+                  value={globalSearch}
+                  onChange={(e) => setGlobalSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-surface border border-neutral rounded-full"
+                />
+              </div>
+            </form>
+
+            <nav className="space-y-1 text-xs font-semibold">
+              <Link
+                href="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-sm text-ink hover:bg-surface"
+              >
+                1. Executive Dashboard
+              </Link>
+              <Link
+                href="/applications"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-sm text-ink hover:bg-surface"
+              >
+                2. Applications Registry (Table 2.3)
+              </Link>
+              <Link
+                href="/scrutiny"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-sm text-ink hover:bg-surface"
+              >
+                3. Scrutiny & Evidence Matrix
+              </Link>
+              <Link
+                href="/regulatory"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-sm text-ink hover:bg-surface"
+              >
+                4. Regulatory Intelligence
+              </Link>
+              <Link
+                href="/audit"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-sm text-ink hover:bg-surface"
+              >
+                5. Reports & SHA-256 Ledger
+              </Link>
+              <Link
+                href="/demo"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-sm text-shallow-core font-bold hover:bg-surface"
+              >
+                ★ Signature Demo Walkthrough
+              </Link>
+            </nav>
+          </div>
+        )}
+      </header>
+
+      {/* Slide-out Notification Drawer */}
+      <NotificationCenter
+        isOpen={notificationOpen}
+        onClose={() => setNotificationOpen(false)}
+      />
+    </>
   );
 };

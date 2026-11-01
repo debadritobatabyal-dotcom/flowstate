@@ -9,9 +9,33 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        border: "var(--border)",
+        surface: "var(--color-surface)",
+        paper: "var(--color-paper)",
+        neutral: "var(--color-neutral)",
+        ink: {
+          DEFAULT: "var(--color-primary)",
+          secondary: "var(--color-secondary)",
+        },
+        navy: {
+          DEFAULT: "var(--color-navy)",
+          light: "var(--color-navy-light)",
+          deep: "var(--color-navy-deep)",
+        },
+        flow: {
+          DEFAULT: "var(--color-flow-core)",
+          core: "var(--color-flow-core)",
+          rim: "var(--color-flow-rim)",
+        },
+        shallow: {
+          DEFAULT: "var(--color-shallow-core)",
+          core: "var(--color-shallow-core)",
+          rim: "var(--color-shallow-rim)",
+        },
+        deep: {
+          DEFAULT: "var(--color-deep-core)",
+          core: "var(--color-deep-core)",
+          rim: "var(--color-deep-rim)",
+        },
         aicte: {
           50: "#f0f4f9",
           100: "#d9e2ec",
@@ -48,8 +72,22 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
-        mono: ["JetBrains Mono", "SFMono-Regular", "Menlo", "monospace"],
+        heading: ["var(--font-space-grotesk)", "Space Grotesk", "sans-serif"],
+        sans: ["var(--font-geist)", "Geist", "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "Geist Mono", "JetBrains Mono", "monospace"],
+      },
+      borderRadius: {
+        none: "0px",
+        sm: "0.6rem",
+        md: "1rem",
+        full: "999px",
+      },
+      boxShadow: {
+        "ring-idle": "var(--shadow-ring-idle)",
+        "ring-hover": "var(--shadow-ring-hover)",
+        "ring-orange": "var(--shadow-ring-orange)",
+        "sheet": "var(--shadow-sheet)",
+        "inset-ring": "var(--shadow-inset-ring)",
       },
     },
   },
